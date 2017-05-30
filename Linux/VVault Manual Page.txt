@@ -1,0 +1,17 @@
+------ Client ------
+
+Call:
+
+	vvault -[Query-type] -[Option]... [Query]
+	
+Query Types:
+
+	- P -- Password
+		Query for a password to an account or service. That account or service name will be entered into [Query]
+	- F -- File
+		Query for a file being stored in the vault. That file name will be entered into [Query]
+	
+Options:
+
+	- l -- List
+	- v -- View
