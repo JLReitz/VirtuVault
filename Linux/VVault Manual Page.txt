@@ -2,16 +2,34 @@
 
 Call:
 
-	vvault -[Query-type] -[Option]... [Query]
+	vvault -[Query-type] -[Option]... [Topic]
 	
-Query Types:
+Query Type:
 
 	- P -- Password
 		Query for a password to an account or service. That account or service name will be entered into [Query]
 	- F -- File
 		Query for a file being stored in the vault. That file name will be entered into [Query]
 	
-Options:
+Option:
 
+	- k -- Keyword
+		Returns a list of entries matching the keyword given. Implicitly uses the same lisitng function as -l, but can also be used in conjunction with -l for the same
+		result.
 	- l -- List
+		Lists all returned results from the query. This is done automatically if there is more than one result, but will also query the user for one specific
+		result to continue the operation on if this is the case. Adding this option manually will only list results without asking for a specifier.
+	
+	Password-Specific:
+	
+	- c -- Copy to clipboard
+		Copies the returned result from the command, if there is one, to the system clipboard
 	- v -- View
+		View the contained passwords next to the names of each result. Can be used in conjunction with -l to view a list of results and their associated passwords.
+		
+	File-Specific:
+	
+	- e -- Extention Type
+		Returns a list of all files of a specified extension type. Implicitly uses the same lisitng function as -l, but can also be used in conjunction with -l
+		for the same result.
+	
