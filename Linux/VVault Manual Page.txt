@@ -1,35 +1,77 @@
------- Client ------
+vvault
 
-Call:
+A password and encrypted file vault to be stored on a home server. When called from a machine running the client, it will access the database located on the server and 
+return queried passwords or files over an encrypted network connection.
 
 	vvault -[Query-type] -[Option]... [Topic]
+
+Vvault will default to the password recovery of a single entry if no query-type or options are given.
+	
+When there is more than one result from any given query, the client will display all given results and ask the user for a specification on which one in particular to yield 
+information on or modify.
 	
 Query Type:
 
 	- P -- Password
-		Query for a password to an account or service. That account or service name will be entered into [Query]
+		Query for a password to an account or service.
 	- F -- File
-		Query for a file being stored in the vault. That file name will be entered into [Query]
+		Query for a file being stored in the vault.
 	
 Option:
 
+	- a -- Add entry
+		Adds a new entry to the vault. If a file is added, it will be automatically added to the encrypted directory, but the user can specify this by 
+		adding -Dec or -Enc to the command line.
+	- d -- Delete entry
+		Deletes an entry from the vault.
 	- k -- Keyword
 		Returns a list of entries matching the keyword given. Implicitly uses the same lisitng function as -l, but can also be used in conjunction with -l for the same
 		result.
 	- l -- List
 		Lists all returned results from the query. This is done automatically if there is more than one result, but will also query the user for one specific
-		result to continue the operation on if this is the case. Adding this option manually will only list results without asking for a specifier.
+		result to continue the operation on if this is the case. Adding this option manually will only list results without querying for a specific entry.
+		
+		This function is used implicitly within -k and -e as well without the need for it to be called externally on the command line.
+	- Settings -- Change settings for the process
+		This will not accept a topic or any other options when this is entered into the command line, and will ignore any that are included. This option allows you
+		to change settings for the service, such as the user's master password and directory locations for the files stored by vvault.
+		
+		Extra settings-specific options can be added to the command line to move directly to a specific setting:
+		
+			vvault -Settings -[Settings option] "[Entry]"
+		
+		Including the settings option will move the process directly to the setting that the user wants to change. Adding an entry in quotations will then immediately
+		change the setting to the entry and terminate the program. This form of settings change is available, but not recommended unless the user knows exactly how
+		to change each setting before going this route.
+		
+		- auth -- Change when user authentication with the master password is required.
+			- 1 -- Authentication is required whenever vvault is used
+			- 2 -- Authentication is only required when encrypted information is queried
+			- 3 -- Authentication is only required when passwords are queried
+			- 4 -- Authentication is only required when encyrpted files are queried
+		- ddir -- Change the decrypted directory location
+		- edir -- Change the encrypted directory location
+		- mp -- Change the master password
+	- v -- View
+		Will display the password of all returned password entries, or display the description of all returned file entries. Can be used in conjunction 
+		with any process that utilizes the -l listing function.
 	
 	Password-Specific:
 	
-	- c -- Copy to clipboard
-		Copies the returned result from the command, if there is one, to the system clipboard
-	- v -- View
-		View the contained passwords next to the names of each result. Can be used in conjunction with -l to view a list of results and their associated passwords.
+	- c -- Change
+		Changes the password for the requested entry. The new password can be placed in quotations after the topic in the command line, or be entered when queried for
+		it after the single entry is specified.
+	- cpy -- Copy to clipboard
+		Copies the returned result from the process, if there is one, to the system clipboard.
 		
 	File-Specific:
 	
-	- e -- Extention Type
+	- Dec -- Decrypt
+		Deecrypt the requested file and move it into the decrypted directory. This will make it available to any device that will SSH into the server filesystem or 
+		access the directory through any other means.
+	- e -- Extention type
 		Returns a list of all files of a specified extension type. Implicitly uses the same lisitng function as -l, but can also be used in conjunction with -l
 		for the same result.
+	- Enc -- Encyrpt
+		Encrypt the requested file and move it into the encrypted directory. This will make it available only to the vvault client-server connection. 
 	
