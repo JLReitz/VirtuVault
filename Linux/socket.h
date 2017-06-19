@@ -9,43 +9,45 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <string>
 #include <vector>
 
 using namespace std;
 
-#define PORTNO 1 //The port number for the server
-const char * hostname = "q"; //The device name of the server
+#define PORTNO 51717 //The port number for the server
 
 
 // Base class for the client-end and server-end socket connections **********************
-public class Socket
+class Socket
 {
+public:
+	
+	// Public Methods
+	virtual bool send(char * message, char * error) = 0;
+	virtual bool receive(char * recieved, char * error) = 0;
+
 protected:
 	
 	// Protected Fields
 	
 	int sockfd, portno;
     struct sockaddr_in serv_addr;
-	
-	//Protected Methods
-	
-	void disconnect() = 0;
-	
-public:
-	
-	// Public Methods
-	bool connect(char * error) = 0;
-	bool send(const char * message, char * error) = 0;
-	bool receive(char * recieved, char * error) = 0;
-}
+};
 
 // Client Socket Class ******************************************************************
-public class Client_Socket : protected Socket
+class Client_Socket : public Socket
 {
+
+public:
+
 	Client_Socket();
 	~Client_Socket();
+
+	// Public Methods
 	
+	bool open(char * hostname, char * error);
+	bool send(char * message, char * error);
+	bool receive(char * recieved, char * error);
+
 protected:
 
 	// Protected Fields
@@ -55,23 +57,22 @@ protected:
 	//Protected Methods
 	
 	void disconnect();
-	
+};
+
+// Server Socket Class ******************************************************************
+class Server_Socket : public Socket
+{	
 public:
+
+	Server_Socket();
+	~Server_Socket();
 
 	// Public Methods
 	
-	bool connect(char * error);
-	bool send(const char * message, char * error);
+	bool open(char * error);
+	bool send(char * message, char * error);
 	bool receive(char * recieved, char * error);
-	
-}
 
-// Server Socket Class ******************************************************************
-public class Server_Socket : protected Socket
-{
-	Server_Socket();
-	~Server_Socket();
-	
 protected:
 	
 	// Protected Fields
@@ -84,14 +85,6 @@ protected:
 	// Protected Methods
 	
 	void disconnect(char * evacuated);
-	
-public:
-
-	// Public Methods
-	
-	bool connect(char * error);
-	bool send(const char * message, char * error);
-	bool receive(char * recieved, char * error);
-}
+};
 
 #endif
