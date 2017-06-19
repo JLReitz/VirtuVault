@@ -59,6 +59,8 @@ bool Client_Socket::open(char * hostname, char * error)
 //Sends a characer string as a message through the socket
 //-	This character string is 'message'
 //-	'message' must be of size 256
+//- A terminary character will be concatinated to the message as it is recieved
+//	on the other side
 //-	If an error occurs, this function will return false and an error message will be
 //	be available
 bool Client_Socket::send(char * message, char * error)
@@ -164,16 +166,17 @@ bool Server_Socket::open(char * error)
 	return true;
 }
 
-//TODO
 //Sends a characer string as a message through the socket
 //-	This character string is 'message'
 //-	'message' must be of size 256
+//- A terminary character will be concatinated to the message as it is recieved
+//	on the other side
 //-	If an error occurs, this function will return false and an error message will be
 //	be available
 bool Server_Socket::send(char * message, char * error)
 {
 	//Write message to socket
-    int n = write(newsockfd, message, strlen(message)+1);
+    int n = write(newsockfd, message, strlen(message));
 	
     if(n < 0) 
 	{
@@ -188,6 +191,8 @@ bool Server_Socket::send(char * message, char * error)
 //-	This character string is 'recieved'
 //-	'recieved' must be of size 256
 //-	'recieved' does not need to be cleared before calling this function
+//-	A terminary character will be concatinated to the end of the string before it is
+//	returned
 //-	If an error occurs, this function will return false and an error message will be
 //	be available
 bool Server_Socket::receive(char * recieved, char * error)
