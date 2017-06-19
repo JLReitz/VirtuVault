@@ -17,6 +17,7 @@ using namespace std;
 
 
 // Base class for the client-end and server-end socket connections **********************
+
 class Socket
 {
 public:
@@ -28,12 +29,12 @@ public:
 protected:
 	
 	// Protected Fields
-	
 	int sockfd, portno;
     struct sockaddr_in serv_addr;
 };
 
 // Client Socket Class ******************************************************************
+
 class Client_Socket : public Socket
 {
 
@@ -43,7 +44,6 @@ public:
 	~Client_Socket();
 
 	// Public Methods
-	
 	bool open(char * hostname, char * error);
 	bool send(char * message, char * error);
 	bool receive(char * recieved, char * error);
@@ -51,15 +51,14 @@ public:
 protected:
 
 	// Protected Fields
-	
 	struct hostent *server;
 	
 	//Protected Methods
-	
 	void disconnect();
 };
 
 // Server Socket Class ******************************************************************
+
 class Server_Socket : public Socket
 {	
 public:
@@ -68,7 +67,6 @@ public:
 	~Server_Socket();
 
 	// Public Methods
-	
 	bool open(char * error);
 	bool send(char * message, char * error);
 	bool receive(char * recieved, char * error);
@@ -76,14 +74,12 @@ public:
 protected:
 	
 	// Protected Fields
-	
 	int newsockfd;
 	socklen_t clilen;
 	
 	struct sockaddr_in cli_addr;
 	
 	// Protected Methods
-	
 	void disconnect(char * evacuated);
 };
 
