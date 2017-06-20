@@ -1,7 +1,7 @@
 #include "Socket.h"
 
 
-// Client Socket ************************************************************************
+// Client_Socket ************************************************************************
 
 // Public -------------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ bool Client_Socket::open(char * hostname, char * error)
 //- A terminary character will be concatinated to the message as it is recieved
 //	on the other side
 //-	If an error occurs, this function will return false and an error message will be
-//	be available
+//	be available through 'error'
 bool Client_Socket::send(char * message, char * error)
 {
 	//Write message to socket
@@ -77,21 +77,22 @@ bool Client_Socket::send(char * message, char * error)
 	return true;
 }
 
-//Reads data from the socket into a character string
-//-	This character string is 'recieved'
+//Reads data from the socket into a character array
+//-	This character array is 'recieved'
 //-	'recieved' must be of size 256
 //-	'recieved' does not need to be cleared before calling this function
 //-	A terminary character will be concatinated to the end of the string before it is
 //	returned
 //-	If an error occurs, this function will return false and an error message will be
-//	be available
+//	be available through 'error'
 bool Client_Socket::receive(char * recieved, char * error)
 {
 	//Clear recieved
 	bzero(recieved, 256);
 	
 	//Read from socket to recieved
-    int n = read(sockfd, recieved, 256);
+    int n = read(sockfd, recieved, 255); //Leave one character open for terminary
+    									 //character
 	
 	if(n < 0)
 	{
@@ -113,7 +114,7 @@ void Client_Socket::disconnect()
 	close(sockfd);
 }
 
-// Server Socket ************************************************************************
+// Server_Socket ************************************************************************
 
 // Public -------------------------------------------------------------------------------
 
@@ -172,7 +173,7 @@ bool Server_Socket::open(char * error)
 //- A terminary character will be concatinated to the message as it is recieved
 //	on the other side
 //-	If an error occurs, this function will return false and an error message will be
-//	be available
+//	be available through 'error'
 bool Server_Socket::send(char * message, char * error)
 {
 	//Write message to socket
@@ -187,21 +188,22 @@ bool Server_Socket::send(char * message, char * error)
 	return true;
 }
 
-//Reads data from the socket into a character string
-//-	This character string is 'recieved'
+//Reads data from the socket into a character array
+//-	This character array is 'recieved'
 //-	'recieved' must be of size 256
 //-	'recieved' does not need to be cleared before calling this function
 //-	A terminary character will be concatinated to the end of the string before it is
 //	returned
 //-	If an error occurs, this function will return false and an error message will be
-//	be available
+//	be available through 'error'
 bool Server_Socket::receive(char * recieved, char * error)
 {
 	//Clear recieved
 	bzero(recieved, 256);
 	
 	//Read from the socket
-	int n = read(newsockfd, recieved, 256);
+	int n = read(newsockfd, recieved, 255); //Leave one character open for terminary
+											//character
 	
 	if(n < 0)
 	{
