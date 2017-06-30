@@ -3,6 +3,21 @@
 
 // VirtuVault ***************************************************************************
 
+//Encrypts a string passed in through 'src' and returns the modified string through
+//'dest'
+//-	'dest' must be a mutable string type
+void VirtuVault::encrypt(char * dest, const char * src)
+{
+	
+}
+
+//Decrypts a string passed in through 'src' and returns the modified string through
+//'dest'
+//-	'dest' must be a mutable string type
+void VirtuVault::decrypt(char * dest, const char * src)
+{
+}
+
 //Receives all messages from the sender through the socket
 //-	Returns true if the messages were received correctly
 //-	If an error occurs, the value returned will be false and an error code will be
@@ -15,9 +30,9 @@ bool VirtuVault::receiveMessage(char * error)
 		return false;
 	
 	//Reserve space in 'data' for the new messages
-	int dataSize = data.size(); //If there's any messages in data already, this will
-								//account for that
-	data.reserve(dataSize + numMessages);
+	int listSize = receive.size(); //If there's any messages in data already, this will
+								   //account for that
+	receive.reserve(listSize + numMessages);
 	
 	//Begin receiving messages
 	for(int i=0; i<numMessages; i++)
@@ -33,8 +48,8 @@ bool VirtuVault::receiveMessage(char * error)
 			return true; //End the function earlier than expected
 		
 		//Copy the new message into 'data'
-		data.add();
-		strcpy(data[datasize+i], buffer);
+		receive.add();
+		strcpy(receive[listSize+i], buffer);
 	}
 	
 	if(!socket->receieve(buffer, error)) //Wait for the "Acknowledge Done" code from the 
@@ -58,7 +73,7 @@ bool VirtuVault::receiveMessage(char * error)
 //	provided through 'error'
 bool VirtuVault::sendMessage(char * error)
 {
-	int numMessages = messages.size();
+	int numMessages = send.size();
 	
 	if(!handshake_send(numMessages, error)) //Handshake
 		return false;
@@ -75,7 +90,7 @@ bool VirtuVault::sendMessage(char * error)
 		} while(strcmp(buffer, "ARdy"));
 	
 		//Send the next message in the list	
-		if(!socket->send(messages[i], error))
+		if(!socket->send(send[i], error))
 			return false;
 	}
 	
@@ -145,8 +160,8 @@ int VirtuVault::handshake_receive(char * error)
 											//(how many messages to expect)
 			return -1;
 		
-		return atoi(buffer); //Return the number value stored within the string. This
-							 //is the precursor info
+		return (int)strtol(buffer, nullptr, 10); //Return the number value stored within 
+												 //the string. This is the precursor info
 	}
 	else
 	{

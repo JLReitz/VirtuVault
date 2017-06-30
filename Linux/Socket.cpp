@@ -23,7 +23,7 @@ Client_Socket::~Client_Socket()
 	delete this->server;
 }
 
-bool Client_Socket::open(char * hostname, char * error)
+bool Client_Socket::open(const char * hostname, char * const error)
 {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -63,7 +63,7 @@ bool Client_Socket::open(char * hostname, char * error)
 //	on the other side
 //-	If an error occurs, this function will return false and an error message will be
 //	be available through 'error'
-bool Client_Socket::send(char * message, char * error)
+bool Client_Socket::send(const char * message, char * const error)
 {
 	//Write message to socket
     int n = write(sockfd, message, strlen(message));
@@ -139,7 +139,7 @@ Server_Socket::~Server_Socket()
 	this->disconnect(evacuated);
 }
 
-bool Server_Socket::open(char * error)
+bool Server_Socket::open(char * const error)
 {
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	 
@@ -174,7 +174,7 @@ bool Server_Socket::open(char * error)
 //	on the other side
 //-	If an error occurs, this function will return false and an error message will be
 //	be available through 'error'
-bool Server_Socket::send(char * message, char * error)
+bool Server_Socket::send(const char * message, char * const error)
 {
 	//Write message to socket
     int n = write(newsockfd, message, strlen(message));
@@ -196,7 +196,7 @@ bool Server_Socket::send(char * message, char * error)
 //	returned
 //-	If an error occurs, this function will return false and an error message will be
 //	be available through 'error'
-bool Server_Socket::receive(char * recieved, char * error)
+bool Server_Socket::receive(char * const recieved, char * const error)
 {
 	//Clear recieved
 	bzero(recieved, 256);
@@ -224,7 +224,7 @@ bool Server_Socket::receive(char * recieved, char * error)
 //-	This data is returned through evacuated
 //-	evacuated must be a char array of size 256
 //-	evacuated does not need to be cleared before calling this function
-void Server_Socket::disconnect(char * evacuated)
+void Server_Socket::disconnect(char * const evacuated)
 {	
 	int n = -1;
 

@@ -23,8 +23,8 @@ class Socket
 public:
 	
 	// Public Methods
-	virtual bool send(char * message, char * error) = 0;
-	virtual bool receive(char * recieved, char * error) = 0;
+	virtual bool send(const char * message, char * const error) = 0;
+	virtual bool receive(char * recieved, char * const error) = 0;
 
 protected:
 	
@@ -44,9 +44,9 @@ public:
 	~Client_Socket();
 
 	// Public Methods
-	bool open(char * hostname, char * error);
-	bool send(char * message, char * error);
-	bool receive(char * recieved, char * error);
+	bool open(const char * hostname, char * const error);
+	bool send(const char * message, char * const error);
+	bool receive(char * const recieved, char * const error);
 
 protected:
 
@@ -67,9 +67,9 @@ public:
 	~Server_Socket();
 
 	// Public Methods
-	bool open(char * error);
-	bool send(char * message, char * error);
-	bool receive(char * recieved, char * error);
+	bool open(char * const error);
+	bool send(const char * message, char * const error);
+	bool receive(char * const recieved, char * const error);
 
 protected:
 	
@@ -80,7 +80,7 @@ protected:
 	struct sockaddr_in cli_addr;
 	
 	// Protected Methods
-	void disconnect(char * evacuated);
+	void disconnect(char * const evacuated);
 };
 
 #endif
