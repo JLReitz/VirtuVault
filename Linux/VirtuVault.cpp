@@ -22,7 +22,7 @@ void VirtuVault::decrypt(char * dest, const char * src)
 //-	Returns true if the messages were received correctly
 //-	If an error occurs, the value returned will be false and an error code will be
 //	provided through 'error'
-bool VirtuVault::receiveMessage(char * error)
+bool VirtuVault::receiveMessage(SystemCode & error)
 {
 	int numMessages = handshake_receieve(error); //Handshake
 	
@@ -37,14 +37,14 @@ bool VirtuVault::receiveMessage(char * error)
 	//Begin receiving messages
 	for(int i=0; i<numMessages; i++)
 	{
-		if(!socket->send("ARdy", error)) //Send "Acknowledged and Ready" code
+		if(!socket->send(ACK_READY, error)) //Send "Acknowledged and Ready" code
 			return false;
 		
 		//Receieve the next message
 		if(!socket->receieve(buffer, error)
 			return false;
 		
-		if(strcmp(buffer, "ADon")) //If the sender acknowledges it is done sending
+		if(strcmp(buffer, ACK_DONE)) //If the sender acknowledges it is done sending
 			return true; //End the function earlier than expected
 		
 		//Copy the new message into 'data'
@@ -56,13 +56,8 @@ bool VirtuVault::receiveMessage(char * error)
 										 //sender
 		return false;
 	
-	if(!strcmp(buffer, "ADon"))
-		return true;
-	else
-	{
-		*error = 'd'; //Exited before sender acknowledged it was done
-		return false;
-	}
+	if(strcmp(buffer, ACK_DONE)) //If the sender hasn't sent ACK_DONE yet
+		error = FLAG_VVAULT_COMPREEXIT;
 }
 
 //Sends all strings stored within 'messages' through the socket
@@ -71,7 +66,7 @@ bool VirtuVault::receiveMessage(char * error)
 //-	Returns true if the message[s] is sent successfully
 //-	If an error occurs, the value returned will be false and an error code will be
 //	provided through 'error'
-bool VirtuVault::sendMessage(char * error)
+bool VirtuVault::sendMessage(SystemCode & error)
 {
 	int numMessages = send.size();
 	
@@ -84,17 +79,17 @@ bool VirtuVault::sendMessage(char * error)
 		//Wait for the recipient to send the "Acknowledged and Ready" code
 		do
 		{	
-		if(!socket->receive(buffer, error))
-			return false
+			if(!socket->receive(buffer, error))
+				return false
 	
-		} while(strcmp(buffer, "ARdy"));
+		} while(strcmp(buffer, ACK_READY));
 	
 		//Send the next message in the list	
 		if(!socket->send(send[i], error))
 			return false;
 	}
 	
-	if(!socket->send("Adon", error)) //Send "Acknowledge Done" code
+	if(!socket->send(ACK_DONE, error)) //Send "Acknowledge Done" code
 		return false;
 		
 	return true;
@@ -107,16 +102,17 @@ bool VirtuVault::sendMessage(char * error)
 //-	Returns true if the handshake is successful
 //-	If an error occurs, the value returned will be false and an error code will be
 //	provided through 'error'
-bool VirtuVault::handshake_send(int numMessages, char * error)
+bool VirtuVault::handshake_send(int numMessages, SystemCode & error)
+bool VirtuVault::handshake_send(int numMessages, SystemCode & error)
 {		
-	if(!socket->send("QAck", error)) //Send "Query for Acknowledgement" code
+	if(!socket->send(ACK, error)) //Send "Query for Acknowledgement" code
 		return false;
 	
 	if(!socket->read(buffer, error))
 		return false;
 	
-	if(!strcmp(buffer, "ARdy")) //Continue with the handshake if the socket has received
-							    //the "Acknowledged and Ready" code
+	if(!strcmp(buffer, ACK_READY)) //Continue with the handshake if the socket has received
+								   //the "Acknowledged and Ready" code
 	{
 		//Continue with handshake
 		
@@ -132,7 +128,7 @@ bool VirtuVault::handshake_send(int numMessages, char * error)
 	}
 	else
 	{
-		*error = 'h'; //Error completing handshake
+		error = ERR_VVAULT_HANDSHAKE;
 		return false;
 	}
 }
@@ -142,18 +138,18 @@ bool VirtuVault::handshake_send(int numMessages, char * error)
 //-	Returns the number of messages that should be expected
 //-	If an error occurs, the value returned will be -1 and an error code will be provided
 //	through 'error'
-int VirtuVault::handshake_receive(char * error)
+int VirtuVault::handshake_receive(SystemCode & error)
 {
 	bool success = false;
 	
 	if(!socket->receive(buffer, error)) //Read from the socket to buffer
 		return -1;
 		
-	if(!strcmp(buffer, "QAck")) //Continue with the handshake if the socket has received
-							    //the "Query for Acknowledgement" code
+	if(!strcmp(buffer, ACK)) //Continue with the handshake if the socket has received
+							 //the "Query for Acknowledgement" code
 	{
 		//Continue with handshake
-		if(!socket->send("ARdy", error)) //Send "Acknowledged and ready" code
+		if(!socket->send(ACK_READY, error)) //Send "Acknowledged and ready" code
 			return -1;
 			
 		if(!socket->receive(buffer, error)) //Wait to receieve precursor info
@@ -165,7 +161,7 @@ int VirtuVault::handshake_receive(char * error)
 	}
 	else
 	{
-		*error = 'h'; //Error completing handshake
+		error = ERR_VVAULT_HANDSHAKE;
 		return -1;
 	}
 }

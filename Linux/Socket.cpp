@@ -23,13 +23,13 @@ Client_Socket::~Client_Socket()
 	delete this->server;
 }
 
-bool Client_Socket::open(const char * hostname, char * const error)
+bool Client_Socket::open(const char * hostname, SystemCode & error)
 {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	
     if(sockfd < 0)
 	{
-		*error = 'o'; //Error opening socket
+		error = ERR_SOCK_OPEN;
 		return false;
     }
 	
@@ -37,7 +37,7 @@ bool Client_Socket::open(const char * hostname, char * const error)
 	
     if(!server) 
 	{
-        *error = 'h'; //No such host
+        error = ERR_SOCK_NOHOST;
         return false;
     }
 	
@@ -49,7 +49,7 @@ bool Client_Socket::open(const char * hostname, char * const error)
 	
     if(connect(sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
 	{
-        *error = 'c'; //Error connecting to socket
+        error = ERR_SOCK_CONNECT;
 		return false;
 	}
 	
@@ -63,14 +63,14 @@ bool Client_Socket::open(const char * hostname, char * const error)
 //	on the other side
 //-	If an error occurs, this function will return false and an error message will be
 //	be available through 'error'
-bool Client_Socket::send(const char * message, char * const error)
+bool Client_Socket::send(const char * message, SystemCode & error)
 {
 	//Write message to socket
     int n = write(sockfd, message, strlen(message));
 	
     if(n < 0) 
 	{
-		*error = 'w'; //Error writing to socket
+		error = ERR_SOCK_WRITE;
 		return false;
 	}
 	
@@ -85,7 +85,7 @@ bool Client_Socket::send(const char * message, char * const error)
 //	returned
 //-	If an error occurs, this function will return false and an error message will be
 //	be available through 'error'
-bool Client_Socket::receive(char * recieved, char * error)
+bool Client_Socket::receive(char * recieved, SystemCode & error)
 {
 	//Clear recieved
 	bzero(recieved, 256);
@@ -96,7 +96,7 @@ bool Client_Socket::receive(char * recieved, char * error)
 	
 	if(n < 0)
 	{
-		*error = 'r'; //Error reading from socket
+		error = ERR_SOCK_READ;
 		return false;
 	}
 	
@@ -139,13 +139,13 @@ Server_Socket::~Server_Socket()
 	this->disconnect(evacuated);
 }
 
-bool Server_Socket::open(char * const error)
+bool Server_Socket::open(SystemCode & error)
 {
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	 
     if(sockfd < 0)
 	{
-		*error = 'o'; //Error opening socket
+		*error = ERR_SOCK_OPEN;
 		return false;
     }
 	
@@ -155,7 +155,7 @@ bool Server_Socket::open(char * const error)
 	 
 	if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
 	{
-		*error = 'b'; //Error binding to socket
+		error = 'b'; //Error binding to socket
 		return false;
 	}
 		  
@@ -174,14 +174,14 @@ bool Server_Socket::open(char * const error)
 //	on the other side
 //-	If an error occurs, this function will return false and an error message will be
 //	be available through 'error'
-bool Server_Socket::send(const char * message, char * const error)
+bool Server_Socket::send(const char * message, SystemCode & error)
 {
 	//Write message to socket
     int n = write(newsockfd, message, strlen(message));
 	
     if(n < 0) 
 	{
-		*error = 'w'; //Error writing to socket
+		error = ERR_SOCK_WRITE
 		return false;
 	}
 	
@@ -207,7 +207,7 @@ bool Server_Socket::receive(char * const recieved, char * const error)
 	
 	if(n < 0)
 	{
-		*error = 'r'; //Error reading from socket
+		error = ERR_SOCK_READ;
 		return false;
 	}
 	
