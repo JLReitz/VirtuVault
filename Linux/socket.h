@@ -6,31 +6,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 
 
-//Struct for error reporting
-typedef enum
-{
-	//Error Codes
-	ERR_SOCK_NOHOST = 0,	//Hostname not found
-	ERR_SOCK_OPEN = 1,		//Error opening socket
-	ERR_SOCK_CONNECT = 2,	//Error connecting to socket
-	ERR_SOCK_WRITE = 3,		//Error writing to socket
-	ERR_SOCK_READ = 4,		//Error reading from socket
-	
-	ERR_VVAULT_HANDSHAKE = 5,	//Error completing communications handshake
-	
-	FLAG_VVAULT_COMPREEXIT = 6	//Exited the receive function before ACK_DONE was sent
-} SystemCode;
-
-// Base Socket Class ********************************************************************
+// Base Socket Class ***************************************************************************************************
 
 class Socket
 {
@@ -47,7 +35,7 @@ protected:
     struct sockaddr_in serv_addr;
 };
 
-// Client Socket Class ******************************************************************
+// Client Socket Class *************************************************************************************************
 
 class Client_Socket : public Socket
 {
@@ -71,7 +59,7 @@ protected:
 	void disconnect();
 };
 
-// Server Socket Class ******************************************************************
+// Server Socket Class *************************************************************************************************
 
 class Server_Socket : public Socket
 {	
