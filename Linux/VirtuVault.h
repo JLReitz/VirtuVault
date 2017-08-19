@@ -2,11 +2,12 @@
 #define VIRTUVAULT_H
 
 
+#include <vector>
+#include <iostream>
+#include <fstream>
 #include "Socket.h"
+#include "VVault_Security.h"
 
-
-//Acknowledge codes for socket communication
-const char * ACK = "ACK\0", ACK_READY = "ACK_READY\0", ACK_DONE = "ACK_DONE\0";
 
 // Base VirtuVault class ***********************************************************************************************
 
@@ -15,11 +16,13 @@ class VirtuVault
 public:
 	
 	//Public Functions	
-	virtual bool connect(SystemCode & error);
+	virtual SYS_CODE_T connect(ERR_CODE_T & error) = 0;
 	
 	
 protected:
 
+	//Protected Members
+	
 	//A struct designed to contain information on passwords/files returned by the query
 	//-	'name' is the name of the file or account for which the password exists
 	//-	'description' is the description of the file or the password for the account
@@ -28,36 +31,20 @@ protected:
 		char * name, description; 
 	} VVault_Object;
 	
-	char buffer[256]; //The buffer to store strings read from the socket into temporarily
-	vector <char[256]> receive, send; //A vector to store received data and messages to be
-								   //sent
+	BYTE buffer[256]; //The buffer to store strings read from the socket into temporarily
+	vector <string> receive, send; //A vector to store received data and messages to be sent
 	
 	Socket * socket; //The Socket object that is oh-so essential to this operation
 	
 	//Protected Functions
-	void encrypt(char * dest, const char * src);
-	void decrypt(char * dest, const char * src);
-	void log(const SystemCode & error);
-	void CRC (char * crc, char * str);
-	bool receiveMessage(SystemCode & error);
-	bool sendMessage(SystemCode & error);
-	bool handshake_send(int numMessages, char * error);
-	int handshake_recieve(SystemCode & error);
+	SYS_CODE_T receiveMessage(ERR_CODE_T & error);
+	SYS_CODE_T sendMessage(ERR_CODE_T & error);
+	SYS_CODE_T handshake_send(const int numMessages, ERR_CODE_T & error);
+	SYS_CODE_T handshake_recieve(int & numMessages, ERR_CODE_T & error);
 	
-	virtual bool setup(SystemCode & error) = 0;
-	virtual bool startup(SystemCode & error) = 0;
+	virtual SYS_CODE_T setup(ERR_CODE_T & error) = 0;
+	virtual SYS_CODE_T startup(ERR_CODE_T & error) = 0;
 	
-	//Protected Accessors
-	unsigned long get_encKey() const;
-	
-	//Protected Mutators
-	void set_encKey(const long new_encKey);
-	
-private:
-
-	//Private Fields
-	unsigned long encKey; //The encyrption key to be used in encrypting/decrypting messages
-
 };
 
 // Client VirtuVault class *********************************************************************************************
@@ -66,12 +53,21 @@ class Client_VirtuVault : public VirtuVault
 {
 public:
 
-	Client_VirtuVault();
-	~Client_VirtuVault();
+	Client_VirtuVault()
+	{
+		//Run startup()
+	}
+	
+	~Client_VirtuVault()
+	{
+		//Free allocated Socket
+		delete this->socket;
+	}
 	
 	//Public Functions
-	bool run_Process(char * topic, char * options, SystemCode & error);
-
+	SYS_CODE_T connect(ERR_CODE_T & error);
+	SYS_CODE_T run_Process(const char * topic, const char * options, ERR_CODE_T & error);
+	
 protected:
 	
 	//Protected Members
@@ -81,9 +77,9 @@ protected:
 	
 	//Protected Functions
 	void load_returned();
-	bool connectSocket(SystemCode & error);
-	bool setup(SystemCode & error);
-	bool startup(SystemCode & error);
+	SYS_CODE_T setup(ERR_CODE_T & error);
+	SYS_CODE_T startup(ERR_CODE_T & error);
+	
 };
 
 // Server VirtuVault class *********************************************************************************************
@@ -92,21 +88,30 @@ class Server_VirtuVault : public VirtuVault
 {
 public:
 
-	Server_VirtuVault();
-	~Server_VirtuVault();
+	Server_VirtuVault()
+	{
+		//Run startup()
+	}
+	
+	~Server_VirtuVault()
+	{
+		//Free allocated Socket
+		delete this->socket;
+	}
 	
 	//Public Functions
-	bool run_Process(SystemCode & error);
+	SYS_CODE_T connect(ERR_CODE_T & error);
+	SYS_CODE_T run_Process(ERR_CODE_T & error);
 
 protected:
 
-	//Protected Fields
-	
+	//Protected Members
+	vector <VVault_Object> results; //A vector for all of the query results to be stored in a less abstract format
 
 	//Protected Functions
-	bool setup(SystemCode & error);
-	bool startup(SystemCode & error);
-
+	SYS_CODE_T setup(ERR_CODE_T & error);
+	SYS_CODE_T startup(ERR_CODE_T & error);
+	
 };
 
 

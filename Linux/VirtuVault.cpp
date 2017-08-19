@@ -3,141 +3,66 @@
 
 // VirtuVault **********************************************************************************************************
 
+
 // Protected -----------------------------------------------------------------------------------------------------------
 
-//Encrypts a string passed in through 'src' and returns the modified string through 'dest'
-//-	'dest' must be a mutable string type
-void VirtuVault::encrypt(char * dest, const char * src)
-{
-}
-
-//Decrypts a string passed in through 'src' and returns the modified string through 'dest'
-//-	'dest' must be a mutable string type
-void VirtuVault::decrypt(char * dest, const char * src)
-{
-}
-
-//Inserts an entry to the log file based on the System Code that is provided
-//-	Reporting to the log file follows this format:
-//		1. Date and time
-//		2. Report the System Code followed by a description
-void VirtuVault::log(const SystemCode & code)
-{
-	//Initialize fstream object and wrap the log file
-	fstream log;
-	log.open("VirtuVault_Operations_Log.txt", fstream::out | fstream::app);
-	
-	//Print a section divider and the date and time
-	log << "******************************************************************" << endl;
-	//TODO print date and time
-	
-	//Determine the error that occured and print it to the file
-	switch(code)
-	{
-		case ERR_SOCK_NOHOST:
-			log << "ERR_SOCK_NOHOST" << endl;
-			log << "The hostname of the requested server could not be found" << endl;
-			break;
-		case ERR_SOCK_OPEN:
-			log << "ERR_SOCK_OPEN" << endl;
-			log << "The socket could not be opened for communications" << endl;
-			break;
-		case ERR_SOCK_CONNECT:
-			log << "ERR_SOCK_CONNECT" << endl;
-			log << "This socket iteration could not connect to the necessary service" << endl;
-			break;
-		case ERR_SOCK_WRITE:
-			log << "ERR_SOCK_WRITE" << endl;
-			log << "The program could not write to the socket" << endl;
-			break;
-		case ERR_SOCK_READ:
-			log << "ERR_SOCK_READ" << endl;
-			log << "The program could not read from the socket" << endl;
-			break;
-		case ERR_VVAULT_HANDSHAKE:
-			log << "ERR_VVAULT_HANDSHAKE" << endl;
-			log << "The program was unable to complete the necessary handshake to begin
-					the transmission of information" << endl;
-			break;
-		case default:
-			log << "An unknown error occured" << endl;
-			break;
-	}
-}
-
-//Runs a Cyclic Redundancy Check on the string included
-//-	This is not a classic CRC, but some sort of check needed to be done, and this will suffice
-void VirtuVault::CRC (char * crc, char * str)
-{
-	//Generate byte-sized variables to be used in CRC calculations
-	unsigned char crc_compute = 0, crc_compare = 0b10010001;
-	
-	//Find the length of the string
-	int strlen = strlen(str);
-	
-	//Iterate through the length of str and perform an 'xor' operation on each character
-	for(int i=0; i<strlen; i++)
-	{
-		//'And' the current character with crc_compare
-		unsigned char crc_compared = str[i] & crc_compare;
-		
-		//Update crc_compute by 'xor'ing it with the result
-		crc_compute ^= crc_compared;
-	}
-	
-	//Format the resulting crc binary value into a string
-	//-	It is safe to use snprintf() because we know and expect a certain maximum size to each message. These are not 
-	//	dynamically allocated and the length of each string is taken into account when checking against the CRC
-	snprintf(crc, 256, "%d", (unsigned int)crc_compute);
-}
-
 //TODO: implement CRC
-//Receives all messages from the sender through the socket
-//-	Returns true if the messages were received correctly
-//-	If an error occurs, the value returned will be false and an error code will be provided through 'error'
-bool VirtuVault::receiveMessage(SystemCode & error)
+//Receives all messages from the sender through the socket connection
+//
+//	[Output]:	error -	An error code (returns ERR_OK if no error occured)
+//	[Output]:			A system code (returns MESSAGE_SUCCESS if the process completed successfully)
+SYS_CODE_T VirtuVault::receiveMessage(ERR_CODE_T & error)
 {
-	int numMessages = handshake_receieve(error); //Handshake
+	int numMessages = 0;
 	
-	if(numMessages < 0)
-		return false;
+	//Perform Handshake
+	SYS_CODE_T report = handshake_receieve(numeMessages, error); //Handshake
 	
-	//Reserve space in 'data' for the new messages
-	int listSize = receive.size(); //If there's any messages in data already, this will
-								   //account for that
-	receive.reserve(listSize + numMessages);
-	
-	//Begin receiving messages
-	for(int i=0; i<numMessages; i++)
+	if(report == HANDSHAKE_SUCCESS)
 	{
-		if(!socket->send(ACK_READY, error)) //Send "Acknowledged and Ready" code
-			return false;
+		//Reserve space in 'receieve' for the new messages
+		int listSize = receive.size(); //If there's any messages in data already, this will account for that
+		receive.reserve(listSize + numMessages);
 		
-		//Receieve the next message
-		if(!socket->receieve(buffer, error)
-			return false;
-		
-		if(strcmp(buffer, ACK_DONE)) //If the sender acknowledges it is done sending
-			return true; //End the function earlier than expected
-		
-		//Copy the new message into 'data'
-		receive.add();
-		strcpy(receive[listSize+i], buffer);
+		//Begin receiving messages
+		for(int i=0; i<numMessages; i++)
+		{
+			buffer[0] = ACK_READY;
+			if((error = socket->send(&buffer[0], 1))) //Send "ready" code
+				return MESSAGE_FAIL;
+			
+			//Receieve the next message
+			if((error = socket->receieve(buffer)))
+				return MESSAGE_FAIL;
+			
+			//Check to see if the sender has sent the "done" code
+			if(buffer[0] == ACK_DONE) //If the sender acknowledges it is done sending
+				return FLAG_VVAULT_COMPREEXIT; //End the function earlier than expected and return the code that says as such
+			
+			//Copy the new message into 'receive'
+			receive[listSize+i] = buffer;
+		}
 	}
+	else
+		return report; //Return HANDSHAKE_FAIL to report where the error occured
 	
-	if(!socket->receieve(buffer, error)) //Wait for the "Acknowledge Done" code from the sender
-		return false;
+	//Wait for the "Acknowledge Done" code from the sender
+	if((error = socket->receieve(&buffer[0], 1)))
+		return MESSAGE_FAIL;
 	
-	if(strcmp(buffer, ACK_DONE)) //If the sender hasn't sent ACK_DONE yet
-		error = FLAG_VVAULT_COMPREEXIT;
+	if(buffer[0] == ACK_DONE)
+		return MESSAGE_SUCCESS;
+	else
+		return MESSAGE_FAIL;
 }
 
 //TODO: implement CRC
 //Sends all strings stored within 'messages' through the socket
 //-	Will not clear 'messages' when finished. This is so that the data can be recovered or saved should an error occur
-//-	Returns true if the message[s] is sent successfully
-//-	If an error occurs, the value returned will be false and an error code will be provided through 'error'
-bool VirtuVault::sendMessage(SystemCode & error)
+//
+//	[Output]:	error -	An error code (returns ERR_OK if no error occured)
+//	[Output]:			A system code (returns MESSAGE_SUCCESS if the process completed successfully)
+SYS_CODE_T VirtuVault::sendMessage(ERR_CODE_T & error)
 {
 	int numMessages = send.size();
 	
@@ -166,96 +91,101 @@ bool VirtuVault::sendMessage(SystemCode & error)
 	return true;
 }
 
-//The handshake authentication that must occur on the sending-end of a message
-//before the message is sent
-//-	The number of messages that will be sent (to be included in this handshake) are passed in as 'numMessages'
-//-	Returns true if the handshake is successful
-//-	If an error occurs, the value returned will be false and an error code will be provided through 'error'
-bool VirtuVault::handshake_send(int numMessages, SystemCode & error)
+//The handshake authentication that must occur on the sending-end of a message before the message is sent
+//
+//	[Input]:	numMessages -	The number of messages to be sent
+//	[Output]:	error 		-	An error code (returns ERR_OK if no error occured)
+//	[Output]:					A system code (returns HANDSHAKE_SUCCESS if no error occured)
+SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
 {		
-	if(!socket->send(ACK, error)) //Send "Query for Acknowledgement" code
-		return false;
+	//Send "begin handshake" code
+	buffer[0] = ACK_BEGIN
+	if((error = socket->send(buffer, 1)))
+		return HANDSHAKE_FAIL;
 	
-	if(!socket->read(buffer, error))
-		return false;
+	//Wait for "followup" code
+	if((error = socket->read(buffer, 1)))
+		return HANDSHAKE_FAIL;
 	
-	if(!strcmp(buffer, ACK_READY)) //Continue with the handshake if the socket has received the "Acknowledged and Ready" code
+	if(buffer[0] == ACK_FOLLOWUP)
 	{
-		//Continue with handshake
-		
-		//Create the precursor string
-		char precursorInfo[256];
-		sprintf(str, "%d", numMessages); 	
+		//Continue with handshake	
 		
 		//Send the precursor string
-		if(!socket->send(precursorInfo, error))
-			return false;
+		buffer[0] = (BYTE)numMessages;
+		if((error = socket->send(buffer, 1)))
+			return HANDSHAKE_FAIL;
 		
-		return true; //Return true when the handshake is complete
-	}
-	else
-	{
-		error = ERR_VVAULT_HANDSHAKE;
-		return false;
+		//Wait for "receieved" code
+		if((error = socket->read(buffer, 1)))
+			return HANDSHAKE_FAIL;
+		
+		if(buffer[0] == ACK_RECEIVED)
+		{
+			//Send "handshake close" code
+			buffer[0] = ACK_CLOSE;
+			if((error = socket->send(buffer, 1)))
+				return HANDSHAKE_FAIL;
+			else
+				return HANDSHAKE_SUCCESS;
+		}
 	}
 }
 
 //The handshake authentication that must occur on the recieving-end of a message
 //before the message is sent
-//-	Returns the number of messages that should be expected
-//-	If an error occurs, the value returned will be -1 and an error code will be provided
-//	through 'error'
-int VirtuVault::handshake_receive(SystemCode & error)
-{
-	bool success = false;
+//
+//	[Output]:	numMessages -	The number of messages to expect from the sender
+//	[Output]:	error		-	An error code (returns ERR_OK if no error occured)
+//	[Output]:				-	A system code (returns HANDSAKE_SUCCESS if no error occured)
+SYS_CODE_T VirtuVault::handshake_receive(int & numMessages, RR_CODE_T & error)
+{	
+	//Wait for "begin" code
+	if((error = socket->read(buffer, 1)))
+		return HANDSHAKE_FAIL;
 	
-	if(!socket->receive(buffer, error)) //Read from the socket to buffer
-		return -1;
-		
-	if(!strcmp(buffer, ACK)) //Continue with the handshake if the socket has received the "Query for Acknowledgement" code
+	if(buffer[0] == ACK_BEGIN)
 	{
-		//Continue with handshake
-		if(!socket->send(ACK_READY, error)) //Send "Acknowledged and ready" code
-			return -1;
-			
-		if(!socket->receive(buffer, error)) //Wait to receieve precursor info (how many messages to expect)
-			return -1;
+		//Continue with handshake	
 		
-		return (int)strtol(buffer, nullptr, 10); //Return the number value stored within  the string. This is the precursor info
-	}
-	else
-	{
-		error = ERR_VVAULT_HANDSHAKE;
-		return -1;
+		//Send "followup" code
+		buffer[0] = ACK_FOLLOWUP
+		if((error = socket->send(buffer, 1)))
+			return HANDSHAKE_FAIL;
+		
+		//Wait for the number of messages to expect
+		if((error = socket->read(buffer, 1)))
+			return HANDSHAKE_FAIL;
+		
+		numMessages = buffer[0];
+		
+		//Send the "receieved" code
+		buffer[0] = ACK_RECEIVED;
+		if((error = socket->send(buffer, 1)))
+			return HANDSHAKE_FAIL;
+		
+		//Wait for "handshake close" code
+		if((error = socket->read(buffer, 1)))
+			return HANDSHAKE_FAIL;
+		
+		if(buffer[0] == ACK_CLOSE)
+			return HANDSHAKE_SUCCESS;
+		else
+			return HANDSHAKE_FAIL;
 	}
 }
 
-unsigned long VirtuVault::get_encKey() const
-{
-	return this->encKey;
-}
-
-void VirtuVault::set_encKey(const long new_encKey)
-{
-	this->encKey = new_encKey;
-}
 
 // Client_VirtuVault ***************************************************************************************************
 
-Client_VirtuVault::Client_VirtuVault()
-{
-	//Run startup()
-}
-
-Client_VirtuVault::~Client_VirtuVault()
-{
-	//Free allocated Socket
-	delete this->socket;
-}
 
 // Public --------------------------------------------------------------------------------------------------------------
 
-bool Client_VirtuVault::run_Process(char * topic, char * options, SystemCode & error)
+SYS_CODE_T Client_VirtuVault::connect(ERR_CODE_T & error)
+{
+}
+
+SYS_CODE_T & error Client_VirtuVault::run_Process(const char * topic, const char * options, ERR_CODE_T & error)
 {
 	return false;
 }
@@ -266,55 +196,49 @@ void Client_VirtuVault::load_returned()
 {
 }
 
-bool Client_VirtuVault::connectSocket(SystemCode & error)
+SYS_CODE_T Client_VirtuVault::connectSocket(ERR_CODE_T & error)
 {
 	return false;
 }
 
-bool Client_VirtuVault::connectSocket(Systems & error)
+SYS_CODE_T Client_VirtuVault::connectSocket(ERR_CODE_T & error)
 {
 	return false;
 }
 
-bool Client_VirtuVault::setup(SystemCode & error)
+SYS_CODE_T Client_VirtuVault::setup(ERR_CODE_T & error)
 {
 	return false;
 }
 
-bool Client_VirtuVault::startup(SystemCode & error)
+SYS_CODE_T Client_VirtuVault::startup(ERR_CODE_T & error)
 {
 	return false;
 }
+
 
 // Server_VirtuVault ***************************************************************************************************
-
-Server_VirtuVault::Server_VirtuVault()
-{
-	//Run startup()
-}
-
-Server_VirtuVault::~Server_VirtuVault()
-{
-	//Free allocated Socket
-	delete this->socket;
-}
 
 
 // Public --------------------------------------------------------------------------------------------------------------
 
-bool Server_VirtuVault::run_Process(SystemCode & error)
+SYS_CODE_T Server_VirtuVault::connect(ERR_CODE_T & error)
+{
+}
+
+SYS_CODE_T Server_VirtuVault::run_Process(ERR_CODE_T & error)
 {
 	return false;
 }
 
 // Protected -----------------------------------------------------------------------------------------------------------
 
-bool Server_VirtuVault::setup(SystemCode & error)
+bool Server_VirtuVault::setup(ERR_CODE_T & error)
 {
 	return false;
 }
 
-bool Server_VirtuVault::startup(SystemCode & error)
+SYS_CODE_T Server_VirtuVault::startup(ERR_CODE_T & error)
 {
 	return false;
 }

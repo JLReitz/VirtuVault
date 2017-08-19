@@ -3,43 +3,24 @@
 
 // Client_Socket *******************************************************************************************************
 
+
 // Public --------------------------------------------------------------------------------------------------------------
 
-Client_Socket::Client_Socket()
-{
-	this->sockfd = -1;
-	this->portno = PORTNO;
-	
-	//Set complex data types to zero
-	this->server = nullptr;
-	bzero((char *)&(this->serv_addr), sizeof(this->serv_addr));
-}
-
-Client_Socket::~Client_Socket()
-{
-	this->disconnect();
-	
-	//Free pointers
-	delete this->server;
-}
-
-bool Client_Socket::open(const char * hostname, SystemCode & error)
+//Opens a socket between the local device and the host (server)
+//
+//	[Input}:	hostname -	A string pointer to the name of the host device
+//	[Output]:				An error code (will return ERR_OK if no error occured)
+ERR_CODE_T Client_Socket::open(const char * hostname)
 {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	
     if(sockfd < 0)
-	{
-		error = ERR_SOCK_OPEN;
-		return false;
-    }
+		return ERR_SOCK_OPEN;
 	
     server = gethostbyname(hostname);
 	
     if(!server) 
-	{
-        error = ERR_SOCK_NOHOST;
-        return false;
-    }
+		return ERR_SOCK_NOHOST;
 	
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -48,57 +29,53 @@ bool Client_Socket::open(const char * hostname, SystemCode & error)
     serv_addr.sin_port = htons(portno);
 	
     if(connect(sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-	{
-        error = ERR_SOCK_CONNECT;
-		return false;
-	}
+		return ERR_SOCK_CONNECT;
 	
-	return true;
+	return ERR_OK;
 }
 
 //Sends a characer string as a message through the socket
-//-	This character string is 'message'
-//-	'message' must be of size 256
 //- A terminary character will be concatinated to the message as it is recieved on the other side
 //-	If an error occurs, this function will return false and an error message will be be available through 'error'
-bool Client_Socket::send(const char * message, SystemCode & error)
+//
+//	[Input]:	message 	-	A pointer to the buffer where the message is contained.
+//								-	The message size must be a maximum size of 255 bytes.
+//	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
+//	[Output]:					An error code (will return ERR_OK if no error occured)
+ERR_CODE_T Client_Socket::send(const void * message, const int messageSize)
 {
 	//Write message to socket
-    int n = write(sockfd, message, strlen(message));
+    int n = write(sockfd, message, messageSize);
 	
-    if(n < 0) 
-	{
-		error = ERR_SOCK_WRITE;
-		return false;
-	}
+    if(n < 0 || n != messageSize) 
+		return ERR_SOCK_WRITE;
 	
-	return true;
+	return ERR_OK;
 }
 
 //Reads data from the socket into a character array
-//-	This character array is 'recieved'
-//-	'recieved' must be of size 256
-//-	'recieved' does not need to be cleared before calling this function
 //-	A terminary character will be concatinated to the end of the string before it is returned
 //-	If an error occurs, this function will return false and an error message will be available through 'error'
-bool Client_Socket::receive(char * recieved, SystemCode & error)
+//
+//	[Input]:	received 	-	A pointer to the buffer for the receieved message to be placed
+//								-	The buffer must be a minimum size of 256 bytes.
+//								-	The buffer will be cleared within this function.
+//	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
+//	[Output]:					An error code (will return ERR_OK if no error occured)
+ERR_CODE_T Client_Socket::receive(const void * recieved, const int messageSize)
 {
 	//Clear recieved
 	bzero(recieved, 256);
 	
 	//Read from socket to recieved
-    int n = read(sockfd, recieved, 255); //Leave one character open for terminary character
+    int n = read(sockfd, recieved, messageSize); //Leave one character open for terminary character
 	
 	if(n < 0)
-	{
-		error = ERR_SOCK_READ;
-		return false;
-	}
-	
+		return ERR_SOCK_READ;
 	//Concatinate a terminary character to the end of the recueved string
 	*(recieved+n+1) = '\0';
 	
-	return true;
+	return ERR_OK;
 }
 
 // Protected Methods ---------------------------------------------------------------------------------------------------
@@ -109,114 +86,91 @@ void Client_Socket::disconnect()
 	close(sockfd);
 }
 
+
 // Server_Socket *******************************************************************************************************
+
 
 // Public --------------------------------------------------------------------------------------------------------------
 
-Server_Socket::Server_Socket()
-{
-	this->sockfd = -1;
-	this->newsockfd = -1;
-	this->portno = PORTNO;
-	this->clilen = -1;
-	
-	//Set complex data types to zero
-	bzero((char *)&(this->serv_addr), sizeof(this->serv_addr));
-	bzero((char *)&(this->cli_addr), sizeof(this->cli_addr));
-}
-
-Server_Socket::~Server_Socket()
-{
-	char evacuated[256];
-	
-	bzero(evacuated, 256);
-	
-	this->disconnect(evacuated);
-}
-
-bool Server_Socket::open(SystemCode & error)
+//Opens a socket connection between the local device and the client
+ERR_CODE_T Server_Socket::open()
 {
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	 
     if(sockfd < 0)
-	{
-		*error = ERR_SOCK_OPEN;
-		return false;
-    }
+		return ERR_SOCK_OPEN;
 	
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(portno);
 	 
 	if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
-	{
-		error = 'b'; //Error binding to socket
-		return false;
-	}
+		return ERR_SOCK_BIND;
 		  
 	listen(sockfd,5);
 	clilen = sizeof(cli_addr);
 
 	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 	
-	return true;
+	return ERR_OK;
 }
 
 //Sends a characer string as a message through the socket
-//-	This character string is 'message'
-//-	'message' must be of size 256
 //- A terminary character will be concatinated to the message as it is recieved on the other side
 //-	If an error occurs, this function will return false and an error message will be be available through 'error'
-bool Server_Socket::send(const char * message, SystemCode & error)
+//
+//	[Input]:	message 	-	A pointer to the buffer where the message is contained.
+//								-	The message size must be a maximum size of 255 bytes.
+//	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
+//	[Output]:					An error code (will return ERR_OK if no error occured)
+ERR_CODE_T Server_Socket::send(const void * message, const int messageSize)
 {
 	//Write message to socket
-    int n = write(newsockfd, message, strlen(message));
+    int n = write(newsockfd, message, messageSize);
 	
-    if(n < 0) 
-	{
-		error = ERR_SOCK_WRITE
-		return false;
-	}
+    if(n < 0 || n != messageSize)
+		return ERR_SOCK_WRITE;
 	
-	return true;
+	return ERR_OK;
 }
 
 //Reads data from the socket into a character array
-//-	This character array is 'recieved'
-//-	'recieved' must be of size 256
-//-	'recieved' does not need to be cleared before calling this function
 //-	A terminary character will be concatinated to the end of the string before it is returned
-//-	If an error occurs, this function will return false and an error message will be be available through 'error'
-bool Server_Socket::receive(char * const recieved, char * const error)
+//-	If an error occurs, this function will return false and an error message will be available through 'error'
+//
+//	[Input]:	received 	-	A pointer to the buffer for the receieved message to be placed
+//								-	The buffer must be a minimum size of 256 bytes.
+//								-	The buffer will be cleared within this function.
+//	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
+//	[Output]:					An error code (will return ERR_OK if no error occured)
+ERR_CODE_T Server_Socket::receive(const void * recieved, const int messageSize)
 {
 	//Clear recieved
 	bzero(recieved, 256);
 	
 	//Read from the socket
-	int n = read(newsockfd, recieved, 255); //Leave one character open for terminary character
+	int n = read(newsockfd, recieved, messageSize); //Leave one character open for terminary character
 	
 	if(n < 0)
-	{
-		error = ERR_SOCK_READ;
-		return false;
-	}
+		return ERR_SOCK_READ;
 	
 	//Concatinate a terminary character to the end of the recueved string
 	*(recieved+n+1) = '\0';
 	
-	return true;
+	return ERR_OK;
 }
 
 // Protected Methods --------------------------------------------------------------------
 
 //Disconnects from the socket on the server side
-//Will read and return any leftover data contained within the socket as well
-//-	This data is returned through evacuated
-//-	evacuated must be a char array of size 256
-//-	evacuated does not need to be cleared before calling this function
-void Server_Socket::disconnect(char * const evacuated)
+//-	Will read and return any leftover data contained within the socket as well
+//
+//	[Output]:	evacuated -	A pointer to the buffer where the leftover data will be stored
+//							-	The buffer must be a minimum size of 0
+//							-	The buffer will be cleared within this function
+void Server_Socket::disconnect(const void * evacuated)
 {	
-	int n = -1;
+	int n = -1; //TODO: Change this to something that works
 
 	//Clear evacuated
 	bzero(evacuated, 256);
