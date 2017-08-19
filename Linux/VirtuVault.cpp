@@ -98,7 +98,7 @@ SYS_CODE_T VirtuVault::sendMessage(ERR_CODE_T & error)
 //	[Output]:					A system code (returns HANDSHAKE_SUCCESS if no error occured)
 SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
 {		
-	//Send "begin handshake" code
+	/*//Send "begin handshake" code
 	buffer[0] = ACK_BEGIN
 	if((error = socket->send(buffer, 1)))
 		return HANDSHAKE_FAIL;
@@ -129,7 +129,85 @@ SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
 			else
 				return HANDSHAKE_SUCCESS;
 		}
+	}*/
+	
+	switch(handshake_state)
+	{
+	case STATE_HANDSHAKE_1:
+	
+		//Send "begin handshake" code
+		buffer[0] = ACK_BEGIN
+		
+		if(!(error = socket->send(buffer, 1)))
+		{
+			handshake_state = STATE_HANDSHAKE_2;
+			return HANDSHAKE_INPROGRESS;
+		}
+		else
+			handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case STATE_HANDSHAKE_2:
+	
+		//Wait for "followup" code
+		if(!(error = socket->read(buffer, 1)) && buffer[0] == ACK_FOLLOWUP)
+		{
+			handshake_state = STATE_HANDSHAKE_3;
+			return HANDSHAKE_INPROGRESS;
+		}
+		else
+			handshake_state = STATE_HANDSHAKE_MAX;	
+		
+		break;
+		
+	case STATE_HANDSHAKE_3:
+		
+		//Send the precursor string
+		buffer[0] = (BYTE)numMessages;
+		
+		if(!(error = socket->send(buffer, 1)))
+		{
+			handshake_state = STATE_HANDSHAKE_4;
+			return HANDSHAKE_INPROGRESS;
+		}
+		else
+			handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case STATE_HANDSHAKE_4:
+		
+		//Wait for "receieved" code
+		if((!error = socket->read(buffer, 1)) && buffer[0] == ACK_RECEIVED)
+		{
+			handshake_state = STATE_HANDSHAKE_5;
+			return HANDSHAKE_INPROGRESS;
+		}
+		else
+			handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case STATE_HANDSHAKE_5:
+		
+		//Send "handshake close" code
+		buffer[0] = ACK_CLOSE;
+		handshake_state = STATE_HANDSHAKE_1;
+		
+		if(!(error = socket->send(buffer, 1)))
+			return HANDSHAKE_SUCCESS;
+		else
+			handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case default:
+		break;
 	}
+	
+	//If the function hasn't returned by now, that means an error has occured and the handshake has failed
+	return HANDSHAKE_FAIL;
 }
 
 //The handshake authentication that must occur on the recieving-end of a message

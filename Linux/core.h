@@ -40,8 +40,10 @@ typedef enum
 	CONNECTION_FAIL			=	0x02,
 	MESSAGE_SUCCESS			=	0x03,
 	MESSAGE_FAIL			=	0x04,
-	HANDSHAKE_SUCCESS		=	0x05,
-	HANDSHAKE_FAIL			=	0x06,
+	MESSAGE_INPROGRESS		=	0x05,
+	HANDSHAKE_SUCCESS		=	0x06,
+	HANDSHAKE_FAIL			=	0x07,
+	HANDHSAKE_INPROGRESS	=	0x08,
 	PROCESS_SUCCESS			=	0x0E,
 	PROCESS_FAIL			=	0x0F,
 	
@@ -69,11 +71,13 @@ typedef enum
 //Enumerated Type for the handshake state machine
 typedef enum
 {
-	STATE_BEGIN			=	0x00,	//Code to be sent to initiate handshake
-	STATE_FOLLOWUP		=	0x01,	//Code to follow an acknowledge request
-	STATE_CLOSE			=	0x02,	//Code to close (finish up) the handshake
+	STATE_HANDSHAKE_1	=	0x00,
+	STATE_HANDSHAKE_2	=	0x01,
+	STATE_HANDSHAKE_3	=	0x02,
+	STATE_HANDSHAKE_4	=	0x03,
+	STATE_HANDSHAKE_5	=	0x04,
 	
-	MAX_STATE_VALUE 	=	0x03,	
+	STATE_HANDSHAKE_MAX	=	0x05,	
 } STATE_HANDSHAKE_T;
 
 // Unions --------------------------------------------------------------------------------------------------------------
