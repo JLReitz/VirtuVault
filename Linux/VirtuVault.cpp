@@ -97,7 +97,8 @@ SYS_CODE_T VirtuVault::sendMessage(ERR_CODE_T & error)
 //	[Output]:	error 		-	An error code (returns ERR_OK if no error occured)
 //	[Output]:					A system code (returns HANDSHAKE_SUCCESS if no error occured)
 SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
-{		
+{	
+	//TODO: Get rid of
 	/*//Send "begin handshake" code
 	buffer[0] = ACK_BEGIN
 	if((error = socket->send(buffer, 1)))
@@ -131,83 +132,117 @@ SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
 		}
 	}*/
 	
-	switch(handshake_state)
+	switch(curr_handshake_state)
 	{
 	case STATE_HANDSHAKE_1:
 	
+		prev_handshake_state = STATE_HANDSHAKE_1;
+		
 		//Send "begin handshake" code
 		buffer[0] = ACK_BEGIN
 		
 		if(!(error = socket->send(buffer, 1)))
 		{
-			handshake_state = STATE_HANDSHAKE_2;
+			curr_handshake_state = STATE_HANDSHAKE_2;
 			return HANDSHAKE_INPROGRESS;
 		}
 		else
-			handshake_state = STATE_HANDSHAKE_MAX;
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
 		break;
 		
 	case STATE_HANDSHAKE_2:
 	
-		//Wait for "followup" code
-		if(!(error = socket->read(buffer, 1)) && buffer[0] == ACK_FOLLOWUP)
+		if(prev_handshake_state == STATE_HANDSHAKE_1)
 		{
-			handshake_state = STATE_HANDSHAKE_3;
-			return HANDSHAKE_INPROGRESS;
+			prev_handshake_state = STATE_HANDSHAKE_2;
+			
+			//Wait for "followup" code
+			if(!(error = socket->read(buffer, 1)) && buffer[0] == ACK_FOLLOWUP)
+			{
+				curr_handshake_state = STATE_HANDSHAKE_3;
+				return HANDSHAKE_INPROGRESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
 		}
 		else
-			handshake_state = STATE_HANDSHAKE_MAX;	
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
 		break;
 		
 	case STATE_HANDSHAKE_3:
 		
-		//Send the precursor string
-		buffer[0] = (BYTE)numMessages;
-		
-		if(!(error = socket->send(buffer, 1)))
+		if(prev_handshake_state == STATE_HANDSHAKE_2)
 		{
-			handshake_state = STATE_HANDSHAKE_4;
-			return HANDSHAKE_INPROGRESS;
+			prev_handshake_state = STATE_HANDSHAKE_3;
+			
+			//Send the precursor string
+			buffer[0] = (BYTE)numMessages;
+			
+			if(!(error = socket->send(buffer, 1)))
+			{
+				curr_handshake_state = STATE_HANDSHAKE_4;
+				return HANDSHAKE_INPROGRESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
 		}
 		else
-			handshake_state = STATE_HANDSHAKE_MAX;
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
 		break;
 		
 	case STATE_HANDSHAKE_4:
 		
-		//Wait for "receieved" code
-		if((!error = socket->read(buffer, 1)) && buffer[0] == ACK_RECEIVED)
+		if(prev_handshake_state == STATE_HANDSHAKE_3)
 		{
-			handshake_state = STATE_HANDSHAKE_5;
-			return HANDSHAKE_INPROGRESS;
+			prev_handshake_state = STATE_HANDSHAKE_4;
+		
+			//Wait for "receieved" code
+			if((!error = socket->read(buffer, 1)) && buffer[0] == ACK_RECEIVED)
+			{
+				curr_handshake_state = STATE_HANDSHAKE_5;
+				return HANDSHAKE_INPROGRESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
 		}
 		else
-			handshake_state = STATE_HANDSHAKE_MAX;
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
 		break;
 		
 	case STATE_HANDSHAKE_5:
 		
-		//Send "handshake close" code
-		buffer[0] = ACK_CLOSE;
-		handshake_state = STATE_HANDSHAKE_1;
-		
-		if(!(error = socket->send(buffer, 1)))
-			return HANDSHAKE_SUCCESS;
+		if(prev_handshake_state == STATE_HANDSHAKE_3)
+		{
+			prev_handshake_state = STATE_HANDSHAKE_4;
+			
+			//Send "handshake close" code
+			buffer[0] = ACK_CLOSE;
+			
+			if(!(error = socket->send(buffer, 1)))
+			{
+				curr_handshake_state = STATE_HANDSHAKE_1;
+				return HANDSHAKE_SUCCESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+		}
 		else
-			handshake_state = STATE_HANDSHAKE_MAX;
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
 		break;
 		
 	case default:
+		//TODO: Insert error handling here
 		break;
 	}
 	
-	//If the function hasn't returned by now, that means an error has occured and the handshake has failed
-	return HANDSHAKE_FAIL;
+	//If the function hasn't returned by now, that means that nothing definitive has happened. Assume the handshake is 
+	//	still in progress
+	return HANDSHAKE_INPROGRESS;
 }
 
 //The handshake authentication that must occur on the recieving-end of a message
@@ -218,7 +253,8 @@ SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
 //	[Output]:				-	A system code (returns HANDSAKE_SUCCESS if no error occured)
 SYS_CODE_T VirtuVault::handshake_receive(int & numMessages, RR_CODE_T & error)
 {	
-	//Wait for "begin" code
+	//TODO: Get rid of
+	/*//Wait for "begin" code
 	if((error = socket->read(buffer, 1)))
 		return HANDSHAKE_FAIL;
 	
@@ -250,7 +286,119 @@ SYS_CODE_T VirtuVault::handshake_receive(int & numMessages, RR_CODE_T & error)
 			return HANDSHAKE_SUCCESS;
 		else
 			return HANDSHAKE_FAIL;
+	}*/
+	
+	switch(curr_handshake_state)
+	{
+	case STATE_HANDSHAKE_1:
+	
+		prev_handshake_state = STATE_HANDSHAKE_1;
+		
+		//Wait for "begin" code
+		if(!(error = socket->read(buffer, 1)) && buffer[0] == ACK_BEGIN)
+		{
+			curr_handshake_state = STATE_HANDSHAKE_2;
+			return HANDSHAKE_INPROGRESS;
+		}
+		else
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case STATE_HANDSHAKE_2:
+		
+		if(prev_handshake_state == STATE_HANDSHAKE_1)
+		{
+			prev_handshake_state = STATE_HANDSHAKE_2;
+			
+			//Send "followup" code
+			buffer[0] = ACK_FOLLOWUP
+			
+			if(!(error = socket->send(buffer, 1)))
+			{
+				curr_handshake_state = STATE_HANDSHAKE_3;
+				return HANDSHAKE_INPROGRESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+		}
+		else
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case STATE_HANDSHAKE_3:
+		
+		if(prev_handshake_state == STATE_HANDSHAKE_2)
+		{
+			prev_handshake_state = STATE_HANDSHAKE_3;
+			
+			//Wait for the precursor string
+			if(!(error = socket->read(buffer, 1)))
+			{
+				numMessages = buffer[0];
+				
+				curr_handshake_state = STATE_HANDSHAKE_4
+				return HANDSHAKE_INPROGRESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+		}
+		else
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case STATE_HANDSHAKE_4:
+		
+		if(prev_handshake_state == STATE_HANDSHAKE_3)
+		{
+			prev_handshake_state = STATE_HANDSHAKE_4;
+			
+			//Send the "receieved" code
+			buffer[0] = ACK_RECEIVED;
+			
+			if(!(error = socket->send(buffer, 1)))
+			{
+				curr_handshake_state = STATE_HANDSHAKE_5;
+				return HANDSHAKE_INPROGRESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+		}
+		else
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case STATE_HANDSHAKE_5:
+		
+		if(prev_handshake_state == STATE_HANDSHAKE_4)
+		{
+			prev_handshake_state = STATE_HANDSHAKE_5;
+			
+			//Wait for "handshake close" code
+			if(!(error = socket->read(buffer, 1)) && buffer[0] == ACK_CLOSE)
+			{
+				curr_handshake_state = STATE_HANDSHAKE_1;
+				return HANDSAKE_SUCCESS;
+			}
+			else
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+		}
+		else
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
+		
+		break;
+		
+	case default:
+		//TODO: Insert error handling here
+		break;
 	}
+	
+	//If the function hasn't returned by now, that means that nothing definitive has happened. Assume the handshake is 
+	//	still in progress
+	return HANDSHAKE_INPROGRESS;
 }
 
 

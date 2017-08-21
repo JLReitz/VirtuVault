@@ -33,7 +33,7 @@ protected:
 	
 	BYTE buffer[256]; //The buffer to store strings read from the socket into temporarily
 	vector <string> receive, send; //A vector to store received data and messages to be sent
-	STATE_HANDSHAKE_T handshake_state;
+	STATE_HANDSHAKE_T curr_handshake_state, prev_handshake_state;
 	
 	Socket * socket; //The Socket object that is oh-so essential to this operation
 	
