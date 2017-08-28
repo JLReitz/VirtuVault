@@ -77,8 +77,15 @@ typedef enum
 	STATE_HANDSHAKE_4	=	0x03,
 	STATE_HANDSHAKE_5	=	0x04,
 	
-	STATE_HANDSHAKE_MAX	=	0x05,	
+	STATE_HANDSHAKE_MAX	=	0x05
 } STATE_HANDSHAKE_T;
+
+//Enumerated type for the messaging state machine
+typedef enum
+{
+	
+	STATE_MESSAGING_MAX
+}STATE_MESSAGING_T;
 
 // Unions --------------------------------------------------------------------------------------------------------------
 
