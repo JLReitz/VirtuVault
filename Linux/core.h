@@ -24,68 +24,69 @@ typedef enum
 	ERR_SOCK_READ			=	0x06,	//Error reading from socket
 	
 	//Message Related Errors
-	ERR_MESSAGE_CRC			=	0x10,	//The CRC for the latest message was invalid
+	ERR_MESSAGE_CRC			=	0x0A,	//The CRC for the latest message was invalid
 	
-	ERR_NOOK				=	0xEF,	//Generic "error occured" code
-	MAX_ERR_VAL				=	0xFF	//The maximum value for error codes
+	ERR_NOOK				=	0x0E,	//Generic "error occured" code
+	
+	MAX_ERR_VAL				=	0x0F	//The maximum value for error codes
 } ERR_CODE_T;
 
 //Enumerated type for system codes
 typedef enum
 {	
-	SYS_OK					=	0x00,
+	SYS_OK					=	0x10,
 	
-	//Status Reports
-	CONNECTION_SUCCESS		=	0x01,
-	CONNECTION_FAIL			=	0x02,
-	MESSAGE_SUCCESS			=	0x03,
-	MESSAGE_FAIL			=	0x04,
-	MESSAGE_INPROGRESS		=	0x05,
-	HANDSHAKE_SUCCESS		=	0x06,
-	HANDSHAKE_FAIL			=	0x07,
-	HANDHSAKE_INPROGRESS	=	0x08,
-	PROCESS_SUCCESS			=	0x0E,
-	PROCESS_FAIL			=	0x0F,
+	CONNECTION_SUCCESS		=	0x11,
+	CONNECTION_FAIL			=	0x12,
+	MESSAGE_SUCCESS			=	0x13,
+	MESSAGE_FAIL			=	0x14,
+	MESSAGE_INPROGRESS		=	0x15,
+	HANDSHAKE_SUCCESS		=	0x16,
+	HANDSHAKE_FAIL			=	0x17,
+	HANDHSAKE_INPROGRESS	=	0x18,
 	
-	//Flags
-	FLAG_VVAULT_COMPREEXIT	=	0xF1,	//Exited the receive function before ACK_DONE was sent
+	PROCESS_SUCCESS			=	0x1D,
+	PROCESS_FAIL			=	0x1E,
 	
-	MAX_SYSCODE_VAL			=	0x0FF	//The maximum value for system codes
+	MAX_SYSCODE_VAL			=	0x1F	//The maximum value for system codes
 } SYS_CODE_T;
 
 //Enumerated type for VirtuVault handshake codes
 typedef enum
 {
-	ACK_BEGIN			=	0x00,	//Code to be sent to initiate handshake
-	ACK_FOLLOWUP		=	0x01,	//Code to follow an acknowledge request
-	ACK_CLOSE			=	0x02,	//Code to close (finish up) the handshake
+	ACK_BEGIN			=	0x80,
+	ACK_FOLLOWUP		=	0x81,
+	ACK_DONE			=	0x82,
 	
-	ACK_READY			=	0x11,
-	ACK_RECEIEVED		=	0x12,
-	ACK_INVALIDCRC		=	0x13,	//This is thrown when the CRC computed does not equal the CRC sent
-	ACK_DONE			=	0x14,
-	
-	MAX_HANDSHAKE_VAL	=	0x0FF	//The maximum value for handshake codes
+	MAX_HANDSHAKE_VAL	=	0x85	//The maximum value for handshake codes
 } HANDSHAKE_CODE_T;
-
-//Enumerated Type for the handshake state machine
-typedef enum
-{
-	STATE_HANDSHAKE_1	=	0x00,
-	STATE_HANDSHAKE_2	=	0x01,
-	STATE_HANDSHAKE_3	=	0x02,
-	STATE_HANDSHAKE_4	=	0x03,
-	STATE_HANDSHAKE_5	=	0x04,
-	
-	STATE_HANDSHAKE_MAX	=	0x05
-} STATE_HANDSHAKE_T;
 
 //Enumerated type for the messaging state machine
 typedef enum
 {
+	STATE_MESSAGE_1		=	0xA0,
+	STATE_MESSAGE_2		=	0xA1,
+	STATE_MESSAGE_3		=	0xA2,
+	STATE_MESSAGE_4		=	0xA3,
+	STATE_MESSAGE_5		=	0xA4,
+	STATE_MESSAGE_6		=	0xA5,
+	STATE_MESSAGE_7		=	0xA6,
+	STATE_MESSAGE_8		=	0xA7,
+	STATE_MESSAGE_9		=	0xA8,
+	STATE_MESSAGE_10	=	0xA9,
 	
-	STATE_MESSAGING_MAX
-}STATE_MESSAGING_T;
+	STATE_MESSAGE_MAX	=	0xAA
+} STATE_MESSAGE_T;
+
+//Enumerated Type for the handshake state machine
+typedef enum
+{
+	STATE_HANDSHAKE_1	=	0x90,
+	STATE_HANDSHAKE_2	=	0x91,
+	STATE_HANDSHAKE_3	=	0x92,
+	
+	STATE_HANDSHAKE_MAX	=	0x95,	
+} STATE_HANDSHAKE_T;
 
 // Unions --------------------------------------------------------------------------------------------------------------
 

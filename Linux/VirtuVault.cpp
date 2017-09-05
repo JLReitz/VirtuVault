@@ -175,25 +175,22 @@ SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
 		
 		if(prev_handshake_state == STATE_HANDSHAKE_2)
 		{
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
 			prev_handshake_state = STATE_HANDSHAKE_3;
 			
 			//Send the precursor string
 			buffer[0] = (BYTE)numMessages;
 			
 			if(!(error = socket->send(buffer, 1)))
-			{
-				curr_handshake_state = STATE_HANDSHAKE_4;
-				return HANDSHAKE_INPROGRESS;
-			}
-			else
-				curr_handshake_state = STATE_HANDSHAKE_MAX;
+				return HANDSHAKE_SUCCESS;
+				
 		}
 		else
 			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
 		break;
 		
-	case STATE_HANDSHAKE_4:
+	/*1case STATE_HANDSHAKE_4:
 		
 		if(prev_handshake_state == STATE_HANDSHAKE_3)
 		{
@@ -238,7 +235,7 @@ SYS_CODE_T VirtuVault::handshake_send(const int numMessages, ERR_CODE_T & error)
 	case default:
 		//TODO: Insert error handling here
 		break;
-	}
+	}*/
 	
 	//If the function hasn't returned by now, that means that nothing definitive has happened. Assume the handshake is 
 	//	still in progress
@@ -331,25 +328,19 @@ SYS_CODE_T VirtuVault::handshake_receive(int & numMessages, RR_CODE_T & error)
 		
 		if(prev_handshake_state == STATE_HANDSHAKE_2)
 		{
+			curr_handshake_state = STATE_HANDSHAKE_MAX;
 			prev_handshake_state = STATE_HANDSHAKE_3;
 			
-			//Wait for the precursor string
-			if(!(error = socket->read(buffer, 1)))
-			{
-				numMessages = buffer[0];
-				
-				curr_handshake_state = STATE_HANDSHAKE_4
-				return HANDSHAKE_INPROGRESS;
-			}
-			else
-				curr_handshake_state = STATE_HANDSHAKE_MAX;
+			//Wait for "handshake close" code
+			if(!(error = socket->read(buffer, 1)) && buffer[0] == ACK_CLOSE)
+				return HANDSAKE_SUCCESS;
 		}
 		else
 			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
 		break;
 		
-	case STATE_HANDSHAKE_4:
+	/*case STATE_HANDSHAKE_4:
 		
 		if(prev_handshake_state == STATE_HANDSHAKE_3)
 		{
@@ -389,7 +380,7 @@ SYS_CODE_T VirtuVault::handshake_receive(int & numMessages, RR_CODE_T & error)
 		else
 			curr_handshake_state = STATE_HANDSHAKE_MAX;
 		
-		break;
+		break;*/
 		
 	case default:
 		//TODO: Insert error handling here
