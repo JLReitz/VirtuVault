@@ -61,7 +61,7 @@ void VVault_Encryption::crc_set(BYTE & crc, const string & str)
 //
 //	[Input]:	crc -	The provided CRC value to be checked against
 //	[Input]:	str -	A reference to the string that the CRC must be done on
-ERR_CODE_T VVault_Encryption::crc_check(const BYTE & crc, const string & str)
+CODE_ERROR_T VVault_Encryption::crc_check(const BYTE & crc, const string & str)
 {
 	//Generate byte-sized variables to be used in CRC calculations
 	BYTE crc_compute = 0, crc_compare = 0b10010001;

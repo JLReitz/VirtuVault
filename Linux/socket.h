@@ -22,8 +22,8 @@ class Socket
 public:
 	
 	// Public Methods
-	virtual ERR_CODE_T send(const void * message, const int messageSize = 255) = 0;
-	virtual ERR_CODE_T receive(void * recieved, const int messageSize = 255) = 0;
+	virtual CODE_ERROR_T send(const void * message, const int messageSize = 255) = 0;
+	virtual CODE_ERROR_T receive(void * recieved, const int messageSize = 255) = 0;
 
 protected:
 	
@@ -58,9 +58,9 @@ public:
 	}
 
 	// Public Methods
-	ERR_CODE_T open(const char * hostname);
-	ERR_CODE_T send(const void * message, const int messageSize = 255);
-	ERR_CODE_T receive(const void * recieved, const int messageSize = 255);
+	CODE_ERROR_T open(const char * hostname);
+	CODE_ERROR_T send(const void * message, const int messageSize = 255);
+	CODE_ERROR_T receive(const void * recieved, const int messageSize = 255);
 
 protected:
 
@@ -101,9 +101,9 @@ public:
 	}
 
 	// Public Methods
-	ERR_CODE_T open();
-	ERR_CODE_T send(const void * message, const int messageSize = 255);
-	ERR_CODE_T receive(const void * recieved, const int messageSize = 255);
+	CODE_ERROR_T open();
+	CODE_ERROR_T send(const void * message, const int messageSize = 255);
+	CODE_ERROR_T receive(const void * recieved, const int messageSize = 255);
 
 protected:
 	

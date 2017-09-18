@@ -16,7 +16,7 @@ class VirtuVault
 public:
 	
 	//Public Functions	
-	virtual SYS_CODE_T connect(ERR_CODE_T & error) = 0;
+	virtual CODE_SYS_T connect(CODE_ERROR_T & error) = 0;
 	
 	
 protected:
@@ -33,18 +33,19 @@ protected:
 	
 	BYTE buffer[256]; //The buffer to store strings read from the socket into temporarily
 	vector <string> receive, send; //A vector to store received data and messages to be sent
+	STATE_MESSAGE_T curr_message_state, prev_message_state;
 	STATE_HANDSHAKE_T curr_handshake_state, prev_handshake_state;
 	
 	Socket * socket; //The Socket object that is oh-so essential to this operation
 	
 	//Protected Functions
-	SYS_CODE_T receiveMessage(ERR_CODE_T & error);
-	SYS_CODE_T sendMessage(ERR_CODE_T & error);
-	SYS_CODE_T handshake_send(const int numMessages, ERR_CODE_T & error);
-	SYS_CODE_T handshake_recieve(int & numMessages, ERR_CODE_T & error);
+	CODE_SYS_T receiveMessage(CODE_ERROR_T & error);
+	CODE_SYS_T sendMessage(CODE_ERROR_T & error);
+	CODE_SYS_T handshake_send(const unsigned int numMessages, CODE_ERROR_T & error);
+	CODE_SYS_T handshake_recieve(int & numMessages, CODE_ERROR_T & error);
 	
-	virtual SYS_CODE_T setup(ERR_CODE_T & error) = 0;
-	virtual SYS_CODE_T startup(ERR_CODE_T & error) = 0;
+	virtual CODE_SYS_T setup(CODE_ERROR_T & error) = 0;
+	virtual CODE_SYS_T startup(CODE_ERROR_T & error) = 0;
 	
 };
 
@@ -66,8 +67,8 @@ public:
 	}
 	
 	//Public Functions
-	SYS_CODE_T connect(ERR_CODE_T & error);
-	SYS_CODE_T run_Process(const char * topic, const char * options, ERR_CODE_T & error);
+	CODE_SYS_T connect(CODE_ERROR_T & error);
+	CODE_SYS_T run_Process(const char * topic, const char * options, CODE_ERROR_T & error);
 	
 protected:
 	
@@ -78,8 +79,8 @@ protected:
 	
 	//Protected Functions
 	void load_returned();
-	SYS_CODE_T setup(ERR_CODE_T & error);
-	SYS_CODE_T startup(ERR_CODE_T & error);
+	CODE_SYS_T setup(CODE_ERROR_T & error);
+	CODE_SYS_T startup(CODE_ERROR_T & error);
 	
 };
 
@@ -101,8 +102,8 @@ public:
 	}
 	
 	//Public Functions
-	SYS_CODE_T connect(ERR_CODE_T & error);
-	SYS_CODE_T run_Process(ERR_CODE_T & error);
+	CODE_SYS_T connect(CODE_ERROR_T & error);
+	CODE_SYS_T run_Process(CODE_ERROR_T & error);
 
 protected:
 
@@ -110,8 +111,8 @@ protected:
 	vector <VVault_Object> results; //A vector for all of the query results to be stored in a less abstract format
 
 	//Protected Functions
-	SYS_CODE_T setup(ERR_CODE_T & error);
-	SYS_CODE_T startup(ERR_CODE_T & error);
+	CODE_SYS_T setup(CODE_ERROR_T & error);
+	CODE_SYS_T startup(CODE_ERROR_T & error);
 	
 };
 

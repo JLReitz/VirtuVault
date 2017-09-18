@@ -10,7 +10,7 @@
 //
 //	[Input}:	hostname -	A string pointer to the name of the host device
 //	[Output]:				An error code (will return ERR_OK if no error occured)
-ERR_CODE_T Client_Socket::open(const char * hostname)
+CODE_ERROR_T Client_Socket::open(const char * hostname)
 {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -42,7 +42,7 @@ ERR_CODE_T Client_Socket::open(const char * hostname)
 //								-	The message size must be a maximum size of 255 bytes.
 //	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
 //	[Output]:					An error code (will return ERR_OK if no error occured)
-ERR_CODE_T Client_Socket::send(const void * message, const int messageSize)
+CODE_ERROR_T Client_Socket::send(const void * message, const int messageSize)
 {
 	//Write message to socket
     int n = write(sockfd, message, messageSize);
@@ -62,7 +62,7 @@ ERR_CODE_T Client_Socket::send(const void * message, const int messageSize)
 //								-	The buffer will be cleared within this function.
 //	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
 //	[Output]:					An error code (will return ERR_OK if no error occured)
-ERR_CODE_T Client_Socket::receive(const void * recieved, const int messageSize)
+CODE_ERROR_T Client_Socket::receive(const void * recieved, const int messageSize)
 {
 	//Clear recieved
 	bzero(recieved, 256);
@@ -93,7 +93,7 @@ void Client_Socket::disconnect()
 // Public --------------------------------------------------------------------------------------------------------------
 
 //Opens a socket connection between the local device and the client
-ERR_CODE_T Server_Socket::open()
+CODE_ERROR_T Server_Socket::open()
 {
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	 
@@ -123,7 +123,7 @@ ERR_CODE_T Server_Socket::open()
 //								-	The message size must be a maximum size of 255 bytes.
 //	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
 //	[Output]:					An error code (will return ERR_OK if no error occured)
-ERR_CODE_T Server_Socket::send(const void * message, const int messageSize)
+CODE_ERROR_T Server_Socket::send(const void * message, const int messageSize)
 {
 	//Write message to socket
     int n = write(newsockfd, message, messageSize);
@@ -143,7 +143,7 @@ ERR_CODE_T Server_Socket::send(const void * message, const int messageSize)
 //								-	The buffer will be cleared within this function.
 //	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
 //	[Output]:					An error code (will return ERR_OK if no error occured)
-ERR_CODE_T Server_Socket::receive(const void * recieved, const int messageSize)
+CODE_ERROR_T Server_Socket::receive(const void * recieved, const int messageSize)
 {
 	//Clear recieved
 	bzero(recieved, 256);

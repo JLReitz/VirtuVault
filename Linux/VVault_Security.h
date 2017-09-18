@@ -20,7 +20,7 @@ public:
 	void VVault_encrypt(string & dest, string & src);
 	void VVault_decrypt(string & dest, string & src);
 	void crc_set(BYTE & crc, const string & str);
-	ERR_CODE_T crc_check(const BYTE & crc, const string & str);
+	CODE_ERROR_T crc_check(const BYTE & crc, const string & str);
 };
 
 // Password Class ******************************************************************************************************
