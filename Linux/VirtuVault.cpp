@@ -13,7 +13,7 @@
 //	[Output]:			A system code (returns MESSAGE_SUCCESS if the process completed successfully)
 CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 {
-	unsigned int numMessages = 0;
+	static unsigned int numMessages = 0;
 	
 	//TODO: Add state machine code
 	switch(curr_message_state)
@@ -67,7 +67,7 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			{
 				prev_message_state = STATE_MESSAGE_3;
 				
-				buffer[0] = MESSAGE_ACK_3;
+				buffer[0] = (BYTE)MESSAGE_ACK_3;
 				
 				if(!(error = socket->send(buffer, 1)))
 				{
@@ -203,15 +203,70 @@ CODE_SYS_T VirtuVault::sendMessage(CODE_ERROR_T & error)
 	//TODO: Add state machine code
 	switch(curr_message_state)
 	{
-		case STATE_MESSAGE_1:
+		case STATE_MESSAGE_1: //Handshake
+			
+			STATE_HANDSHAKE_T handshake_status = handshake_send(error);
+			
+			prev_message_state = STATE_HANDSHAKE_1;
+			
+			if(handshake_status == HANDSHAKE_INPROGRESS)
+			{
+				curr_message_state = STATE_MESSAGE_1;
+				return MESSAGE_INPROGRESS;
+			}
+			else if (handshake_status == HANDSHAKE_SUCCESS)
+			{
+				curr_message_state = STATE_MESSAGE_2;
+				return MESSAGE_INPROGRESS;
+			}
+			else
+			{
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+				return MESSAGE_FAIL;
+			}
 			
 			break;
 			
-		case STATE_MESSAGE_2:
+		case STATE_MESSAGE_2: //TX Number of Messages
+			
+			if(prev_message_state == STATE_MESSAGE_1)
+			{
+				prev_message_state = STATE_MESSAGE_2;
+				
+				buffer[0] = (BYTE)results.size();
+				
+				if(!(error = socket->send(buffer, 1)))
+				{
+					curr_message_state = STATE_MESSAGE_4;
+					return MESSAGE_INPROGRESS;
+				}
+				else
+					curr_message_state = STATE_MESSAGE_MAX;
+			}
+			else
+			{
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+				return MESSAGE_FAIL;
+			}
 			
 			break;
 			
-		case STATE_MESSAGE_3:
+		case STATE_MESSAGE_3: //Receive Acknowledgement
+			
+			if(prev_message_state == STATE_MESSAGE_2)
+			{
+				prev_message_state = STATE_MESSAGE_3;
+				
+				if(!(error = socket->read(buffer, 1)) && (buffer[0]) == MESSAGE_ACK_3))
+					return MESSAGE_INPROGRESS;
+				else
+					curr_handshake_state = STATE_HANDSHAKE_MAX;
+			}
+			else
+			{
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+				return MESSAGE_FAIL;
+			}
 			
 			break;
 			
