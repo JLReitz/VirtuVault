@@ -39,10 +39,10 @@ class Client_Socket : public Socket
 
 public:
 
-	Client_Socket()
+	Client_Socket(const int new_portno = -1)
 	{
 		this->sockfd = -1;
-		this->portno = PORTNO;
+		this->portno = new_portno;
 		
 		//Set complex data types to zero
 		this->server = nullptr;
@@ -77,11 +77,11 @@ class Server_Socket : public Socket
 {	
 public:
 
-	Server_Socket()
+	Server_Socket(const int new_portno = -1)
 	{
 		this->sockfd = -1;
 		this->newsockfd = -1;
-		this->portno = PORTNO;
+		this->portno = new_portno;
 		this->clilen = -1;
 		
 		//Set complex data types to zero
