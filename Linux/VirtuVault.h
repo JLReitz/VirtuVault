@@ -37,6 +37,8 @@ protected:
 	STATE_HANDSHAKE_T curr_handshake_state, prev_handshake_state;
 	
 	Socket * socket; //The Socket object that is oh-so essential to this operation
+	VVault_Encryption * encryption;
+	VVault_Password * password;
 	
 	//Protected Functions
 	CODE_SYS_T receiveMessage(CODE_ERROR_T & error);

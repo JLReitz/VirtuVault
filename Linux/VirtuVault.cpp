@@ -49,7 +49,10 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 				prev_message_state = STATE_MESSAGE_2;
 				
 				if(!(error = socket->read(buffer, 1)) && ((numMessages = buffer[0]) > 0))
+				{
+					curr_message_state = STATE_MESSAGE_3;
 					return MESSAGE_INPROGRESS;
+				}
 				else
 					curr_handshake_state = STATE_HANDSHAKE_MAX;
 			}
@@ -61,7 +64,7 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_3: //Send Acknowledgement
+		case STATE_MESSAGE_3: //Send Acknowledgment
 		
 			if(prev_message_state == STATE_MESSAGE_2)
 			{
@@ -86,11 +89,18 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_4:
+		case STATE_MESSAGE_4: //Rx Message Byte
 			
 			if(prev_message_state == STATE_MESSAGE_3)
 			{
-				
+				if(!(error = socket->read(buffer, 1)))
+					
+					receive[i] = buffer[0];
+					curr_message_state = STATE_MESSAGE_5;
+					return MESSAGE_INPROGRESS;
+				}
+				else
+					curr_handshake_state = STATE_HANDSHAKE_MAX;
 			}
 			else
 			{
@@ -100,7 +110,7 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_5:
+		case STATE_MESSAGE_5: //Send Acknowledgment
 			
 			if(prev_message_state == STATE_MESSAGE_4)
 			{
@@ -114,7 +124,21 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_6:
+		case STATE_MESSAGE_6: //Decode Message
+			
+			if(prev_message_state == STATE_MESSAGE_4)
+			{
+				
+			}
+			else
+			{
+				curr_handshake_state = STATE_HANDSHAKE_MAX;
+				return MESSAGE_FAIL;
+			}
+			
+			break;
+			
+		case STATE_MESSAGE_7: //Compute CRC
 			
 			if(prev_message_state == STATE_MESSAGE_5)
 			{
@@ -128,7 +152,7 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_7:
+		case STATE_MESSAGE_8: //Send Success
 			
 			if(prev_message_state == STATE_MESSAGE_6)
 			{
@@ -142,7 +166,7 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_8:
+		case STATE_MESSAGE_9: //Recieve Done
 			
 			if(prev_message_state == STATE_MESSAGE_7)
 			{
@@ -156,23 +180,9 @@ CODE_SYS_T VirtuVault::receiveMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_9:
+		case STATE_MESSAGE_10: //Send Done
 			
 			if(prev_message_state == STATE_MESSAGE_8)
-			{
-				
-			}
-			else
-			{
-				curr_handshake_state = STATE_HANDSHAKE_MAX;
-				return MESSAGE_FAIL;
-			}
-			
-			break;
-			
-		case STATE_MESSAGE_10:
-			
-			if(prev_message_state == STATE_MESSAGE_9)
 			{
 				
 			}
@@ -251,7 +261,7 @@ CODE_SYS_T VirtuVault::sendMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_3: //Receive Acknowledgement
+		case STATE_MESSAGE_3: //Receive Acknowledgment
 			
 			if(prev_message_state == STATE_MESSAGE_2)
 			{
@@ -270,32 +280,32 @@ CODE_SYS_T VirtuVault::sendMessage(CODE_ERROR_T & error)
 			
 			break;
 			
-		case STATE_MESSAGE_4:
+		case STATE_MESSAGE_4: //Encode Message Byte and Tx
 			
 			break;
 			
-		case STATE_MESSAGE_5:
+		case STATE_MESSAGE_5: //Receive Acknowledgment
 			
 			break;
 			
-		case STATE_MESSAGE_6:
+		case STATE_MESSAGE_6: //Compute CRC
 			
 			break;
 			
-		case STATE_MESSAGE_7:
+		case STATE_MESSAGE_7: //Receive Success
 			
 			break;
 			
-		case STATE_MESSAGE_8:
+		case STATE_MESSAGE_8: //Send Done
 			
 			break;
 			
-		case STATE_MESSAGE_9:
+		case STATE_MESSAGE_9: //Receive Done
 			
 			break;
 			
-		case STATE_MESSAGE_10:
-			
+		default:
+			//TODO: Insert error handling here; state2, state3, 
 			break;
 	}
 	

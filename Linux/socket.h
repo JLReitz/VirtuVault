@@ -22,14 +22,14 @@ class Socket
 public:
 	
 	// Public Methods
-	virtual CODE_ERROR_T send(const void * message, const int messageSize = 255) = 0;
-	virtual CODE_ERROR_T receive(void * recieved, const int messageSize = 255) = 0;
+	virtual CODE_ERROR_T send(BYTE * const message, const int messageSize = 256) = 0;
+	virtual CODE_ERROR_T receive(BYTE * const recieved, const int messageSize = 256) = 0;
 
 protected:
 	
 	// Protected Members
-	int sockfd, portno;
-    struct sockaddr_in serv_addr;
+	int m_sockfd, m_portno;
+    struct sockaddr_in m_serv_addr;
 };
 
 // Client Socket Class *************************************************************************************************
@@ -58,14 +58,14 @@ public:
 	}
 
 	// Public Methods
-	CODE_ERROR_T open(const char * hostname);
-	CODE_ERROR_T send(const void * message, const int messageSize = 255);
-	CODE_ERROR_T receive(const void * recieved, const int messageSize = 255);
+	CODE_ERROR_T connect(const char * const hostname);
+	CODE_ERROR_T send(BYTE * const message, const int messageSize = 256);
+	CODE_ERROR_T receive(BYTE * const recieved, const int messageSize = 255);
 
 protected:
 
 	// Protected Members
-	struct hostent * server;
+	struct hostent * m_server;
 	
 	//Protected Methods
 	void disconnect();
@@ -101,20 +101,20 @@ public:
 	}
 
 	// Public Methods
-	CODE_ERROR_T open();
-	CODE_ERROR_T send(const void * message, const int messageSize = 255);
-	CODE_ERROR_T receive(const void * recieved, const int messageSize = 255);
+	CODE_ERROR_T connect();
+	CODE_ERROR_T send(BYTE * const message, const int messageSize = 256);
+	CODE_ERROR_T receive(BYTE * const recieved, const int messageSize = 255);
 
 protected:
 	
 	// Protected Members
-	int newsockfd;
-	socklen_t clilen;
+	int m_newsockfd;
+	socklen_t m_clilen;
 	
-	struct sockaddr_in cli_addr;
+	struct sockaddr_in m_cli_addr;
 	
 	// Protected Methods
-	void disconnect(const void * evacuated);
+	void disconnect(BYTE * const evacuated);
 };
 
 
