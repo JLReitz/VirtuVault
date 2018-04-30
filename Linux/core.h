@@ -1,19 +1,20 @@
 #ifndef CORE_H
 #define CORE_H
 
+#define BLKSIZE 1024
 
 // Generic Types -------------------------------------------------------------------------------------------------------
 
-typedef 	unsigned char 	BYTE;
-typedef 	unsigned short 	WORD;
-typedef		unsigned long	DWORD;
+typedef unsigned char 	BYTE;
+typedef unsigned short 	WORD;
+typedef	unsigned long	DWORD;
 
 // Enumerated types ----------------------------------------------------------------------------------------------------
 
 //Enumerated type for error codes
 typedef enum
 {
-	ERR_OK					=	0x00
+	ERR_NONE					=	0x00
 	
 	//Socket related errors
 	ERR_SOCK_NOHOST			=	0x01,	//Hostname not found
@@ -26,7 +27,7 @@ typedef enum
 	//Message Related Errors
 	ERR_MESSAGE_CRC			=	0x0A,	//The CRC for the latest message was invalid
 	
-	ERR_NOOK				=	0x0E,	//Generic "error occured" code
+	ERR_GENERIC				=	0x0E,	//Generic "error occured" code
 	
 	MAX_ERR_VAL				=	0x0F
 } CODE_ERROR_T;

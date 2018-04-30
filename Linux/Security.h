@@ -19,7 +19,7 @@ public:
 
 	Encryption(const unsigned long new_encKey = 0)
 	{
-		this->encKey = new_encKey;
+		this->m_public_encKey = new_encKey;
 		this->set_private_encKey();
 	}
 	
@@ -29,20 +29,19 @@ public:
 protected:
 
 	//Private Functions
-	void encrypt(char * dest, char * src, const int strlen);
-	void decrypt(char * dest, char * src, const int strlen);
+	void encrypt(char * const dest, const char * const src, const int strlen);
+	void decrypt(char * const dest, const char * const src, const int strlen);
 	
 	//Protected Accessor
-	const unsigned long get_public_encKey() const { return this->public_encKey; }
+	const unsigned long get_public_encKey() const { return this->m_public_encKey; }
 	
 	//Protected Mutators
-	void set_public_encKey(const unsigned long new_encKey) { this->public_encKey = new_encKey; }
-	void set_private_encKey();
+	void set_public_encKey(const DWORD new_encKey) { this->m_public_encKey = new_encKey; }
 
 private:
 	
 	//Private Members
-	unsigned long public_encKey, private_encKey;
+	unsigned long m_public_encKey, m_private_encKey;
 	
 	//Private Mutator
 	void seed();
@@ -63,10 +62,10 @@ public:
 	Password()
 	{}
 	
-protected:
-
 	//Public Function
 	bool check_PasswordInput(const char * input);
+	
+protected:
 	
 	//Protected Mutator
 	void set_masterPswd(const char * new_masterPswd) { this->masterPswd = new_masterPswd; }
@@ -74,7 +73,7 @@ protected:
 private:
 
 	//Private Member
-	char * masterPswd;
+	char * m_masterPswd;
 };
 
 

@@ -41,12 +41,12 @@ CODE_ERROR_T Client_Socket::connect(const char * const hostname)
 //	[Input]:	message 	-	A pointer to the buffer where the message is contained.
 //	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 256)
 //	[Output]:					An error code (will return ERR_NONE if no error occured)
-CODE_ERROR_T Client_Socket::send(BYTE * const message, const int messageSize)
+CODE_ERROR_T Client_Socket::send(const BYTE * const message, const int messageSize)
 {
 	//Write message to socket
     int n = write(m_sockfd, message, messageSize);
 	
-    if(n < 0 || n != messageSize) 
+    if((n < 0) || (n != messageSize))
 		return ERR_SOCK_WRITE;
 	
 	return ERR_NONE;
@@ -72,7 +72,7 @@ CODE_ERROR_T Client_Socket::receive(BYTE * const recieved, const int messageSize
 		return ERR_SOCK_READ;
 	
 	//Concatinate a terminary character to the end of the recueved string
-	*(recieved+n+1) = '\0';
+	recieved[n-1] = '\0';
 	
 	return ERR_NONE;
 }
@@ -82,7 +82,7 @@ CODE_ERROR_T Client_Socket::receive(BYTE * const recieved, const int messageSize
 void Client_Socket::disconnect()
 {
 	//Close the socket
-	close(sockfd);
+	close(m_sockfd);
 }
 
 
@@ -123,12 +123,12 @@ CODE_ERROR_T Server_Socket::connect()
 //	[Input]:	message 	-	A pointer to the buffer where the message is contained.
 //	[Output]:	messageSize -	The size in Bytes of the message to be sent (defaults to 255)
 //	[Output]:					An error code (will return ERR_NONE if no error occured)
-CODE_ERROR_T Server_Socket::send(BYTE * const message, const int messageSize)
+CODE_ERROR_T Server_Socket::send(const BYTE * const message, const int messageSize)
 {
 	//Write message to socket
     int n = write(m_newsockfd, message, messageSize);
 	
-    if(n < 0 || n != messageSize)
+    if((n < 0) || (n != messageSize))
 		return ERR_SOCK_WRITE;
 	
 	return ERR_NONE;

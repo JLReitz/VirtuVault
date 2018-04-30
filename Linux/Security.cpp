@@ -10,16 +10,16 @@
 //
 //	[Output]:	dest -		A reference to the string where the conversion will be stored
 //	[Input]:	src -		A reference to the string to be encyrpted
-void Encryption::encrypt(const char * dest, const char * src, const int strlen)
+void Encryption::encrypt(char * const dest, const char * const src, const int strlen)
 {
 	int conversion = rand(), newValue;
 	
 	//Run through every character in the string
 	for(int i = 0; i<strlen; i++)
 	{
-		if((newValue = (int)*(src+i) + conversion) > 255) //If the conversion yields >255, count the difference from 0
+		if((newValue = (int)src[i] + conversion) > 255) //If the conversion yields >255, count the difference from 0
 			newValue -= 255;
-		else if((newValue = (int)*(src+i) + conversion) < 0) //If the conversion yields <0, count the difference from 255
+		else if((newValue = (int)src[i] + conversion) < 0) //If the conversion yields <0, count the difference from 255
 			newValue += 255;
 		
 		//Assign the finished conversion to the equivalent index in the destination
@@ -31,16 +31,16 @@ void Encryption::encrypt(const char * dest, const char * src, const int strlen)
 //
 //	[Output]:	dest -		A reference to the string where the conversion will be stored
 //	[Input]:	src -		A reference to the string to be encyrpted
-void Encryption::decrypt(const char * dest, const char * src, const int strlen)
+void Encryption::decrypt(char * const dest, const char * const src, const int strlen)
 {
 	int conversion = rand(), newValue;
 	
 	//Run through every character in the string
 	for(int i = 0; i<src.length(); i++)
 	{
-		if((newValue = (int)*(src+i) - conversion) > 255) //If the conversion yields >255, count the difference from 0
+		if((newValue = (int)src[i] - conversion) > 255) //If the conversion yields >255, count the difference from 0
 			newValue -= 255;
-		else if((newValue = (int)*(src+i) - conversion) < 0) //If the conversion yields <0, count the difference from 255
+		else if((newValue = (int)src[i] - conversion) < 0) //If the conversion yields <0, count the difference from 255
 			newValue += 255;
 		
 		//Assign the finished conversion to the equivalent index in the destination
@@ -82,7 +82,7 @@ void Encryption::seed()
 //	[Output]:			A boolean value (returns true if the strings match)
 bool Password::check_PasswordInput(const char * input)
 {
-	if(!strcmp(masterPswd, input))
+	if(!strcmp(m_masterPswd, input))
 		return true;
 	else
 		return false;

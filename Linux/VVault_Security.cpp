@@ -10,9 +10,9 @@
 //
 //	[Output]:	dest -		A reference to the string where the conversion will be stored
 //	[Input]:	src -		A reference to the string to be encyrpted
-void VVault_Encryption::VVault_encrypt(string & dest, string & src)
+void VVault_Encryption::VVault_encrypt(string & dest, const string & src)
 {
-	char[255] dest_buffer = "\0";
+	char dest_buffer[255];
 	
 	encrypt(dest_buffer, src.c_str(), src.length());
 	
@@ -23,9 +23,9 @@ void VVault_Encryption::VVault_encrypt(string & dest, string & src)
 //
 //	[Output]:	dest -		A reference to the string where the conversion will be stored
 //	[Input]:	src -		A reference to the string to be encyrpted
-void VVault_Encryption::VVault_decrypt(string & dest, string & src)
+void VVault_Encryption::VVault_decrypt(string & dest, const string & src)
 {
-	char[255] dest_buffer = "\0";
+	char dest_buffer[255];
 	
 	decrypt(dest_buffer, src.c_str(), src.length());
 	

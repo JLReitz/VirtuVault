@@ -22,7 +22,7 @@ class Socket
 public:
 	
 	// Public Methods
-	virtual CODE_ERROR_T send(BYTE * const message, const int messageSize = 256) = 0;
+	virtual CODE_ERROR_T send(const BYTE * const message, const int messageSize = 256) = 0;
 	virtual CODE_ERROR_T receive(BYTE * const recieved, const int messageSize = 256) = 0;
 
 protected:
@@ -59,8 +59,8 @@ public:
 
 	// Public Methods
 	CODE_ERROR_T connect(const char * const hostname);
-	CODE_ERROR_T send(BYTE * const message, const int messageSize = 256);
-	CODE_ERROR_T receive(BYTE * const recieved, const int messageSize = 255);
+	CODE_ERROR_T send(const BYTE * const message, const int messageSize = BLKSIZE);
+	CODE_ERROR_T receive(BYTE * const recieved, const int messageSize = BLKSIZE);
 
 protected:
 
@@ -102,7 +102,7 @@ public:
 
 	// Public Methods
 	CODE_ERROR_T connect();
-	CODE_ERROR_T send(BYTE * const message, const int messageSize = 256);
+	CODE_ERROR_T send(const BYTE * const message, const int messageSize = 256);
 	CODE_ERROR_T receive(BYTE * const recieved, const int messageSize = 255);
 
 protected:
